@@ -8,9 +8,7 @@
 
 # Conteúdo das Entregas
 
-# MLP
-
-## OBJETIVO 1
+## OBJETIVO 1 (MLP)
 Implementar uma rede neural artificial Multilayer Perceptron (MLP) - sem fazer uso de bibliotecas especializadas em redes neurais artificiais - com uma camada escondida e treinada com o algoritmo Backpropagation em sua versão de Gradiente Descendente - algoritmo de treinamento discutido em sala de aula. 
 
 - Dados para treinamento e teste: OR,AND,XOR,Caracteres Completo
@@ -35,7 +33,7 @@ Implementar uma rede neural artificial Multilayer Perceptron (MLP) - sem fazer u
 - procedimentos de calculo de erro na camada de saida, procedimento de calculo de informação de erro para a retropropagação, procedimento de calculo de contribuição de erro na acamada escondida, procedimento de calculo da resposta de rede em termos de reconhecimento do caractere, procedimento de calculo da matriz de confusão
 
 
-## OBJETIVO 2
+## OBJETIVO 2 (CNN)
 Implementar uma rede neural artificial Convolution Neural Network (CNN)
 O conjunto de dados escolhido deve ser usado para teste da rede neural, considerando
 duas tarefas:
