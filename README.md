@@ -3,10 +3,10 @@
 
 ### Bibliografia:
 
-#### MLP
+## MLP
 https://github.com/caetanv/multilayer-perceptron
 
-#### CNN
+## CNN
 https://github.com/caetanv/cnn-facial-landmark
 
 https://github.com/caetanv/Convolution-Neural-Network-
