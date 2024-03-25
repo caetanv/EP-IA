@@ -1,10 +1,10 @@
 # TRABALHO EP IA - MLP e CNN
 
-### DATAS DE ENTREGA:
+## DATAS DE ENTREGA:
 
-## MLP 21 de Maio
+### MLP 21 de Maio
 
-## CNN 25 de Junho
+### CNN 25 de Junho
 
 # Conteúdo das Entregas
 
