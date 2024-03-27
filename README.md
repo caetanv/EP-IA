@@ -63,6 +63,15 @@ duas tarefas:
 
 ### MLP
 https://github.com/caetanv/multilayer-perceptron
+https://github.com/123epsilon/Neural-Network-in-Python
+
+### Perceptron
+https://github.com/rfguri/perceptron
+https://github.com/whoisraibolt/Single-Layer-Perceptron
+https://github.com/Hello-World-Blog/Perceptron
+
+### Funcao OR 
+https://github.com/ZahidHasan/Perceptron
 
 ### CNN
 https://github.com/caetanv/cnn-facial-landmark
