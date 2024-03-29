@@ -64,11 +64,13 @@ duas tarefas:
 ### MLP
 https://github.com/caetanv/multilayer-perceptron
 https://github.com/123epsilon/Neural-Network-in-Python
+https://github.com/manoharmukku/multilayer-perceptron-in-python
 
 ### Perceptron
 https://github.com/rfguri/perceptron
 https://github.com/whoisraibolt/Single-Layer-Perceptron
 https://github.com/Hello-World-Blog/Perceptron
+https://github.com/aonurakman/Simple-Char-Recognition-w-Perceptron/tree/main
 
 ### Funcao OR 
 https://github.com/ZahidHasan/Perceptron
