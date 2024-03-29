@@ -61,16 +61,16 @@ duas tarefas:
 
 
 Classes: 
--- Classe para o Neuronio Perceptron
-- Métodos : inicialização, treinamento, teste, função de ativação, matriz de confusão
--- Classe para a arquitetura da rede neural
-- Métodos : inicialização, rodar
--- Classe para os hiperparâmetros
-- Métodos : get_parameters
--- Classe para geração de arquivos de saida
-- Métodos : write_output
--- Classe para leitura dos arquivos para continuação dos testes
-- Métodos : read_file
+- Classe para o Neuronio Perceptron
+ Métodos : inicialização, treinamento, teste, função de ativação, matriz de confusão
+- Classe para a arquitetura da rede neural
+ Métodos : inicialização, rodar
+- Classe para os hiperparâmetros
+ Métodos : get_parameters
+- Classe para geração de arquivos de saida
+ Métodos : write_output
+- Classe para leitura dos arquivos para continuação dos testes
+ Métodos : read_file
 
 #### Bibliografia:
 
