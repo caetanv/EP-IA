@@ -78,6 +78,7 @@ Classes:
 https://github.com/caetanv/multilayer-perceptron
 https://github.com/123epsilon/Neural-Network-in-Python
 https://github.com/manoharmukku/multilayer-perceptron-in-python
+https://colab.research.google.com/github/bentrevett/pytorch-image-classification/blob/master/1_mlp.ipynb
 
 ### Perceptron
 https://github.com/rfguri/perceptron
