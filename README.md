@@ -14,8 +14,8 @@ Implementar uma rede neural artificial Multilayer Perceptron (MLP) - sem fazer u
 - Dados para treinamento e teste: OR,AND,XOR,Caracteres Completo
 
 ### Arquivos de Saída
-- hiperparametros finais da arquitetura da rn e hiperparametros de inicialização
-- pesos iniciais
+- hiperparametros finais da arquitetura da rn e hiperparametros de inicialização (parameters.py)
+- pesos iniciais 
 - pesos finais
 - erro cometido pela rede em cada iteração
 - saídas produzidas pela rede
