@@ -1,5 +1,7 @@
 import random, copy
 
+
+# Classe Perceptron
 class Perceptron:
 
 	def __init__(self, amostras, saidas, taxa_aprendizado=0.1, epocas=1000, limiar=-1):
@@ -46,7 +48,8 @@ class Perceptron:
 				'''
 				for j in range(self.num_amostra + 1):
 					u += self.pesos[j] * self.amostras[i][j]
-
+					print(u)
+					
 				# obtém a saída da rede utilizando a função de ativação
 				y = self.sinal(u)
 
@@ -82,6 +85,8 @@ class Perceptron:
 		u = 0
 		for i in range(self.num_amostra + 1):
 			u += self.pesos[i] * amostra[i]
+			print(u)
+
 
 		# calcula a saída da rede
 		y = self.sinal(u)
