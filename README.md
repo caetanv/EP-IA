@@ -86,6 +86,10 @@ https://github.com/whoisraibolt/Single-Layer-Perceptron
 https://github.com/Hello-World-Blog/Perceptron
 https://github.com/aonurakman/Simple-Char-Recognition-w-Perceptron/tree/main
 
+### Backpropagation
+https://github.com/hvanhaagen/backpropagation/tree/main
+https://github.com/xprathamesh/Backpropagation-in-MLP
+
 ### Funcao OR 
 https://github.com/ZahidHasan/Perceptron
 
@@ -99,6 +103,7 @@ https://github.com/caetanv/Conjunctivitis-image-detection
 https://github.com/caetanv/CNN-for-Text-Classification
 
 https://github.com/caetanv/DigitRecognizer
+
 
 
 
