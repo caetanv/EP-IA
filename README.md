@@ -60,6 +60,15 @@ duas tarefas:
 - Procediemento de calculo da matriz de confusão
 
 
+### Descrição das imagens
+Caracteres Completo X_png contem os arquivos de imagem em dimensão 10x12 em png dos caracteres em ordem alfabética. Repetindo a cada 26 caracteres o alfabeto. (1326 / 26) (51 alfabetos)
+
+X.txt contém cada caractere separado por linha em vetores de 1,-1 para cada bit da matriz do caractere
+
+Y_letra.txt valor da letra correspondente ao caractere
+
+
+
 Classes: 
 - Classe para o Neuronio Perceptron
  Métodos : inicialização, treinamento, teste, função de ativação, matriz de confusão
