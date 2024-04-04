@@ -59,16 +59,62 @@ duas tarefas:
 - Teste da CNN para o conjunto de dados MNIST
 - Procediemento de calculo da matriz de confusão
 
+
+### Descrição das imagens
+Caracteres Completo X_png contem os arquivos de imagem em dimensão 10x12 em png dos caracteres em ordem alfabética. Repetindo a cada 26 caracteres o alfabeto. (1326 / 26) (51 alfabetos)
+
+X.txt contém cada caractere separado por linha em vetores de 1,-1 para cada bit da matriz do caractere
+
+Y_letra.txt valor da letra correspondente ao caractere
+
+
+### Modelagem da Arquitetura
+120 Neurônios de Entrada (Referente aos 12x10 pixels do png) (Recebem 1 ou -1)
+26 Neurônios de Saída (Referente aos 26 rótulos do alfabeto) (Saem com 1 e -1)
+
+
+Classes: 
+- Classe para o Neuronio Perceptron
+ Métodos : inicialização, treinamento, teste, função de ativação, matriz de confusão
+- Classe para a arquitetura da rede neural
+ Métodos : inicialização, rodar
+- Classe para os hiperparâmetros
+ Métodos : get_parameters
+- Classe para geração de arquivos de saida
+ Métodos : write_output
+- Classe para leitura dos arquivos para continuação dos testes
+ Métodos : read_file
+
 #### Bibliografia:
 
 ### MLP
 https://github.com/caetanv/multilayer-perceptron
+
 https://github.com/123epsilon/Neural-Network-in-Python
+
+https://github.com/manoharmukku/multilayer-perceptron-in-python
+
+https://colab.research.google.com/github/bentrevett/pytorch-image-classification/blob/master/1_mlp.ipynb
+
+https://github.com/caetanv/perceptron-fausset 
+
+https://github.com/caetanv/Perceptron-Adaline-implementation
 
 ### Perceptron
 https://github.com/rfguri/perceptron
+
 https://github.com/whoisraibolt/Single-Layer-Perceptron
+
 https://github.com/Hello-World-Blog/Perceptron
+
+https://github.com/aonurakman/Simple-Char-Recognition-w-Perceptron/tree/main
+
+
+### Backpropagation
+https://github.com/hvanhaagen/backpropagation/tree/main
+
+https://github.com/xprathamesh/Backpropagation-in-MLP
+
 
 ### Funcao OR 
 https://github.com/ZahidHasan/Perceptron
@@ -83,6 +129,7 @@ https://github.com/caetanv/Conjunctivitis-image-detection
 https://github.com/caetanv/CNN-for-Text-Classification
 
 https://github.com/caetanv/DigitRecognizer
+
 
 
 
