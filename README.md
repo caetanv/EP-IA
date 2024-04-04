@@ -89,20 +89,32 @@ Classes:
 
 ### MLP
 https://github.com/caetanv/multilayer-perceptron
+
 https://github.com/123epsilon/Neural-Network-in-Python
+
 https://github.com/manoharmukku/multilayer-perceptron-in-python
+
 https://colab.research.google.com/github/bentrevett/pytorch-image-classification/blob/master/1_mlp.ipynb
+
 https://github.com/caetanv/perceptron-fausset 
+
+https://github.com/caetanv/Perceptron-Adaline-implementation
 
 ### Perceptron
 https://github.com/rfguri/perceptron
+
 https://github.com/whoisraibolt/Single-Layer-Perceptron
+
 https://github.com/Hello-World-Blog/Perceptron
+
 https://github.com/aonurakman/Simple-Char-Recognition-w-Perceptron/tree/main
+
 
 ### Backpropagation
 https://github.com/hvanhaagen/backpropagation/tree/main
+
 https://github.com/xprathamesh/Backpropagation-in-MLP
+
 
 ### Funcao OR 
 https://github.com/ZahidHasan/Perceptron
