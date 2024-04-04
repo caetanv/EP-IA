@@ -68,6 +68,10 @@ X.txt contém cada caractere separado por linha em vetores de 1,-1 para cada bit
 Y_letra.txt valor da letra correspondente ao caractere
 
 
+### Modelagem da Arquitetura
+120 Neurônios de Entrada (Referente aos 12x10 pixels do png) (Recebem 1 ou -1)
+26 Neurônios de Saída (Referente aos 26 rótulos do alfabeto) (Saem com 1 e -1)
+
 
 Classes: 
 - Classe para o Neuronio Perceptron
@@ -88,6 +92,7 @@ https://github.com/caetanv/multilayer-perceptron
 https://github.com/123epsilon/Neural-Network-in-Python
 https://github.com/manoharmukku/multilayer-perceptron-in-python
 https://colab.research.google.com/github/bentrevett/pytorch-image-classification/blob/master/1_mlp.ipynb
+https://github.com/caetanv/perceptron-fausset 
 
 ### Perceptron
 https://github.com/rfguri/perceptron
