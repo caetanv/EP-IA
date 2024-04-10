@@ -32,7 +32,11 @@ class MLP:
 
         #CONTINUA......
 
-mlp= MLP ([1, 2, 3, 4], [2], 3, 1, 2, 1) #debug
+#debug
+
+mlp= MLP ([1, 2, 3, 4], [2], 3, 1, 2, 1) 
 mlp.treinar()
 
 print ('x')
+
+#debug
