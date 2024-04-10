@@ -11,7 +11,7 @@ class MLP:
         self.bias = bias #bias
         self.num_amostras = len(amostras) #número de amostras na camada de entrada
         self.num_elementos_amostra = len(amostras) #número de elementos para cada amostra
-        self.pesos_entrada = [[] for amostra in range(self.num_camada_escondida)] #vetor/matriz de pesos
+        self.pesos_entrada = [[] for amostra in range(self.num_amostras)] #vetor/matriz de pesos
 
         #falta CAMADA ESCONDIDA
         #falta PESOS DA CAMADA ESCONDIDA
@@ -19,18 +19,20 @@ class MLP:
     def treinar(self):
 
         #adiciona o bias para camada de entrada
-        for amostra in self.amostras:
-            amostra.insert(0, self.bias)
+        for amostra in range(self.num_amostras):
+            self.amostras.insert(0, self.bias)
 
         #iniciar o vetor de pesos com valores aleatórios
         for i in range(self.num_elementos_amostra):
             for j in range(self.num_camada_escondida):
-                self.pesos_entrada.append(random.random())
+                self.pesos_entrada[i].append(random.random())
 
         #inserir bias no vetor de pesos
-        self.pesos_entrada #ERRO: o numero de pesos deve ser igual a quantidade de pesos da camada escondida CONTINUAR DEPOIS)
+        #self.pesos_entrada #ERRO: o numero de pesos deve ser igual a quantidade de pesos da camada escondida CONTINUAR DEPOIS)
 
         #CONTINUA......
 
-mlp= MLP ([1], [2], 3, 1, 2, 1)
+mlp= MLP ([1, 2, 3, 4], [2], 3, 1, 2, 1) #debug
+mlp.treinar()
 
+print ('x')
