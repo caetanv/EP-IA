@@ -10,6 +10,8 @@ y = []
 ms = np.array(ms)
 zigma = 0
 threshold = 0.1
+array_dimensionX = 12
+array_dimensionY = 10
 
 def op(file):
     matrix = []
@@ -23,15 +25,22 @@ def op(file):
 def openfile(file):
     matriz = []
     with open(file, 'r') as arquivo:
-        linhas = arquivo.readlines()
-        for linha in linhas:
-            valores = linha.strip().replace(' ','').split(',')
-            for valor in valores:
-                if valor != '' :
-                    linha_matriz = int(valor)
-                    matriz.append(linha_matriz)
-    print(matriz)
-    matrixS(matriz)
+            linhas = arquivo.readlines()
+            # cada linha é a representação de uma letra
+            for linha in linhas:
+                valores = linha.strip().replace(' ','').split(',')
+                # insere os valores 1 e -1
+                for valor in valores:
+                    if valor != '' :
+                        matriz.append(int(valor))
+                matrixS(matriz)
+                print("matrix inserida:")
+                print(matriz)
+                matrixT('a')
+                print("letra a")
+                matriz = []
+
+
 
 def matrixS(m):
     global ms
@@ -59,6 +68,7 @@ def train():
         for h in range(np.shape(ms)[0]):
             for i in range(len(pt)):
                 for j in range(len(ms)):
+                    print(h,j,i,ms)
                     zigma = zigma + ms[h][j] * w[i][j]
                 y_in[i] = b[i] + zigma
                 zigma = 0
@@ -112,8 +122,7 @@ def check(file):
 import pdb
 openfile('X.txt')
 
-
-#matrixT('a')
+#openfile('X2.txt')
 #op('A2.txt')
 #matrixT('a')
 #op('B1.txt')
@@ -121,9 +130,5 @@ openfile('X.txt')
 train()
 
 """ Guess The Alphabet """
-gs = check('A3.txt')
-print(gs)
-gs = check('B1.txt')
-print(gs)
-gs = check('G3.txt')
-print(gs)
+#gs = check('X1.txt')
+#print(gs)
