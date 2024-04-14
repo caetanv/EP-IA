@@ -51,15 +51,25 @@ class Reader:
                     letters.append(line)
 
         return letters
+    
+    #leitor do Y_classe, ou seja, os valores esperados para o MLP
+    def y_npy (self, file_path):
+        arrays=[]
+
+        dados = np.load(file_path)
+
+        for array in dados:
+            arrays.append(array)
+
+            matriz = np.array(arrays)
+
+        return matriz
 
 #continuar...
     
-'''
+
 reader = Reader()
 
-entradaCSV, saidaCSV = reader.porta_logica_reader("portas-logicas/problemAND.csv")
+dataX = reader.y_npy("caracteres-completo/Y_classe.npy")
 
-entradaY = reader.read_letters('caracteres-completo/Y_letra.csv')
-
-print (entradaY)
-'''
+print (dataX)

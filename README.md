@@ -100,6 +100,8 @@ https://github.com/caetanv/perceptron-fausset
 
 https://github.com/caetanv/Perceptron-Adaline-implementation
 
+https://github.com/caetanv/Letter-Recognition-Using-Multi-layer-Perceptron
+
 ### Perceptron
 https://github.com/rfguri/perceptron
 
