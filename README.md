@@ -75,7 +75,7 @@ Y_letra.txt valor da letra correspondente ao caractere
 
 Classes: 
 - Classe para o Neuronio Perceptron
- Métodos : inicialização, treinamento, teste, função de ativação, matriz de confusão
+ Métodos : inicialização, treinamento, teste, função de ativação, backpropagation, matriz de confusão
 - Classe para a arquitetura da rede neural
  Métodos : inicialização, rodar
 - Classe para os hiperparâmetros
@@ -84,6 +84,21 @@ Classes:
  Métodos : write_output
 - Classe para leitura dos arquivos para continuação dos testes
  Métodos : read_file
+
+Para fazer (14/04):
+1 - Treinamento com as letras fazer funcionar
+2 - Log de Treinamento e salvamento dos pesos 
+3 - Separar os dados de teste, treino e condição de parada
+4 - Verificar o trabalho de IA https://github.com/caetanv/IA
+5 - Matriz de confusão
+6 - Plotagem das funções
+7 - 
+
+
+Vitor: Perceptron funcionar com as letras
+Guilherme: Perceptron analisar os codigos
+Vinicius: separar as Partes de testes e treino
+Marcos: Perceptron analisar os codigos
 
 #### Bibliografia:
 
