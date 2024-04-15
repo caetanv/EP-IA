@@ -1,5 +1,8 @@
 import MLP as multilp
+import readers as r
 import numpy as np
+
+
 
 # Definição dos dados de entrada (X) e saída (y)
 X = np.array([
@@ -15,6 +18,10 @@ y = np.array([
     [1],
     [0]
 ]).T  # Transposta para ter dimensões [n_saidas, n_amostras]
+
+reader = r.Reader()
+X = reader.caracteres_reader("src\X.csv")
+Y = reader.y_npy('caracteres-completo\Y_classe.npy')
 
 # Defina o tamanho das camadas de entrada, ocultas e de saída
 input_size = 2
