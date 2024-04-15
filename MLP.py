@@ -12,8 +12,7 @@ class CamadaMLP(object):
     def inicializa_pesos(self, quantidade_observacoes, taxa_de_aprendizado):
         """ Inicializa os pesos dos neuronios da camada de acordo com o número de observações na base de treino """
         for _ in range(self.quantidade_neuronios):
-            pesos = {col_num: random.uniform(-0.5, 0.5)
-                     for col_num in range(quantidade_observacoes)}
+            pesos = {col_num: random.uniform(-1, 1) for col_num in range(quantidade_observacoes)}
             bias = random.random()
             self.neuronios.append(Perceptron(pesos, bias, taxa_de_aprendizado))
 
