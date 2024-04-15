@@ -17,12 +17,6 @@ class Neuronio():
         sig = self.sigmoide(y_in)
         return sig* (1 - sig)
 
-    def calcula_saida(self, X: list):
-        """ Calcula a saída do perceptron para o valor X """
-        for col_num in range(len(X)):
-            valor_in = self.bias + sum([X[col_num] * self.pesos[col_num]])
-        return valor_in, self.sigmoide(valor_in)
-
     def calcula_erro(self, y_real, y_calculado, valor_in):
         """ Calcula o termo de informação do erro para o valor y_real e y_calculado """
         erros = []
@@ -55,12 +49,6 @@ class Neuronio():
         correcoes_bias = self.taxa_aprendizado * termo_inf_erro
 
         return correcoes, correcoes_bias
-
-    def altera_pesos(self, correcao: dict):
-        """ Altera os pesos do perceptron """
-        for col_num in range(len(self.pesos)):
-            self.pesos[col_num] += correcao[0][col_num]
-            self.bias += correcao[1]
         
 
 class CamadaMLP(object):
@@ -74,7 +62,7 @@ class CamadaMLP(object):
         """ Inicializa os pesos dos neuronios da camada de acordo com o número de observações na base de treino """
         for _ in range(self.quantidade_neuronios):
             pesos = {col_num: random.uniform(-1, 1) for col_num in range(quantidade_observacoes)}
-            bias = random.random()
+            bias = random.uniform(-1, 1)
             self.neuronios.append(Neuronio(pesos, bias, taxa_de_aprendizado))
 
     def calcula_saida(self, amostra): #self, amostra, pesos
@@ -85,8 +73,10 @@ class CamadaMLP(object):
         for neuronio in self.neuronios:
             for col_num in range(len(amostra)):
                 valor_in = neuronio.bias + sum([amostra[col_num] * neuronio.pesos[col_num]])
+
             saidas.append(neuronio.sigmoide(valor_in))
             valores_ins.append(valor_in)
+        
         return valores_ins, saidas
 
 
@@ -162,7 +152,9 @@ class MultilayerPerceptron(object):
     def altera_pesos(self, camada: CamadaMLP, correcoes: list):
         """ Altera os pesos dos neuronios da camada de acordo com as correções """
         for neuronio, correcao in zip(camada.neuronios, correcoes):
-            neuronio.altera_pesos(correcoes[correcao])
+            for col_num in range(len(neuronio.pesos)):
+                neuronio.pesos[col_num] += correcoes[correcao][0][col_num]
+                neuronio.bias += correcoes[correcao][1]
 
     def checa_melhora_validacao(self, erros_validacao: list):
         """ Checa se a taxa de erro da validacao aumentou """
@@ -179,24 +171,34 @@ class MultilayerPerceptron(object):
 
         return erro_medio / len(erros)
 
+    def feedForward(self, x):
+        # Calcula a saída da camada escondida
+        entradas_escondida, saidas_escondida = self.camada_escondida.calcula_saida(x)
+
+        # Calcula a saída da camada de saída
+        entradas_saida, saidas_saida = self.camada_saida.calcula_saida(saidas_escondida)
+
+        return entradas_escondida, entradas_saida, saidas_escondida, saidas_saida
+    
     def erro_validacao(self, X: list, y_real: list):
         """ Calcula o erro de validação """
         erro_validacao = 0
 
         for x, y_r in zip(X, y_real):
-            """Forward"""
-            # Calcula a saída da camada escondida
+            entradas_escondida, entradas_saida, saidas_escondida, saidas_saida = self.feedForward(x)
+            """Forward
+            
             _, saidas_escondida = self.camada_escondida.calcula_saida(
                 x)
 
-            # Calcula a saída da camada de saída
+            
             y_ins, saidas_saida = self.camada_saida.calcula_saida(
                 saidas_escondida)
-
+            """
             """Backpropagation"""
             # Calcula o erro e correção da camada de saída
             erro_saida, _, _ = self.camada_saida.calcula_correcao(
-                y_real=y_r, y_calculado=saidas_saida, valores_in=y_ins, saidas_escondida=saidas_escondida)
+                y_real=y_r, y_calculado=saidas_saida, valores_in=entradas_saida, saidas_escondida=saidas_escondida)
 
             erro_epoca = self.calcula_erro_quadratico_medio(erro_saida)
             erro_validacao += erro_epoca
@@ -222,22 +224,17 @@ class MultilayerPerceptron(object):
             
             for x, y_ in zip(X, y):
                 """Forward"""
-                # Calcula a saída da camada escondida
-                z_ins, saidas_escondida = self.camada_escondida.calcula_saida(
-                    x)
-
-                # Calcula a saída da camada de saída
-                y_ins, saidas_saida = self.camada_saida.calcula_saida(
-                    saidas_escondida)
+                entradas_escondida, entradas_saida, saidas_escondida, saidas_saida = self.feedForward(x)
+                
 
                 """Backpropagation"""
                 # Calcula o erro e correção da camada de saída
                 erro_saida, correcao_saida, termos_inf_erro_saida = self.camada_saida.calcula_correcao(
-                    y_real=y_, y_calculado=saidas_saida, valores_in=y_ins, saidas_escondida=saidas_escondida)
+                    y_real=y_, y_calculado=saidas_saida, valores_in=entradas_saida, saidas_escondida=saidas_escondida)
 
                 # Calcula o erro e a e correção da camada escondida
                 correcao_escondida = self.camada_escondida.calcula_correcao(
-                    valores_in=z_ins, entradas=x, termos_inf_erro_saida=termos_inf_erro_saida)
+                    valores_in=entradas_escondida, entradas=x, termos_inf_erro_saida=termos_inf_erro_saida)
 
                 # Faz a alteração dos pesos da camada de saída e da camada escondida
                 self.altera_pesos(self.camada_saida, correcao_saida)
@@ -256,7 +253,7 @@ class MultilayerPerceptron(object):
                 qtde_epocas_sem_melhora = 0 if (melhoria or epoca == 0) else qtde_epocas_sem_melhora + 1
                 erro_validacao = erro_val
 
-           # self.gerenciador_logs.adiciona_log(self.__class__.__name__, x,  saidas_saida, self.camada_escondida.neuronios,
+            # self.gerenciador_logs.adiciona_log(self.__class__.__name__, x,  saidas_saida, self.camada_escondida.neuronios,
             #                                   self.camada_saida.neuronios, self.taxa_de_aprendizado, epoca, -1, self.limiar, epocas, erro_epoca, erro_validacao)
 
             print(f"Epoca: {epoca} - Erro: {erro_epoca} - Erro de validação: {erro_validacao}")
@@ -271,9 +268,8 @@ class MultilayerPerceptron(object):
         for x in X:
             _, saidas_escondida = self.camada_escondida.calcula_saida(X)
             _, saidas_saida = self.camada_saida.calcula_saida(saidas_escondida)
-            predito.append(saidas_saida)
 
-        return predito
+        return saidas_saida
 '''   
     def gera_matriz_de_confusao(self, X: list, y: list):
         letras = ["A", "B", "C", "D", "E", "J", "K", "L", "V", "Y", "Z"]
