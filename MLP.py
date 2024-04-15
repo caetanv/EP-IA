@@ -180,6 +180,35 @@ class MultilayerPerceptron(object):
 
         return entradas_escondida, entradas_saida, saidas_escondida, saidas_saida
     
+    def backPropagation(self, x, y, entradas_escondida, saidas_escondida, entradas_saida, saidas_saida):
+        #cálculo da variação do erro da camada de saída
+        variacao_erro_saida = []
+        taxas_correcao_pesos_saida = [[]]
+        delta_in = []
+        variacao_erro_escondida = []
+        soma = 0
+        taxas_correcao_pesos_escondida = [[]]
+
+        for j in range(len(self.camada_escondida.neuronios)):
+            for k in range(len(self.camada_saida.neuronios)):
+                variacao_erro_saida.append((y[k] - saidas_saida[k]) * self.derivada_sigmoide(entradas_saida[k]))
+
+                taxas_correcao_pesos_saida[j].append(saidas_escondida[j] * variacao_erro_saida[k] * self.taxa_de_aprendizado)
+
+                soma += variacao_erro_saida[k] * self.camada_saida.neuronios[k].pesos[j]
+                
+                delta_in.append(soma)
+                variacao_erro_escondida.append(delta_in[j] * self.derivada_sigmoide(entradas_escondida[j]))
+
+        for i in range (len(self.camada_entrada.neuronios)):
+            for j in range (len(self.camada_escondida.neuronios)):
+                taxas_correcao_pesos_escondida[i].append(self.taxa_de_aprendizado * variacao_erro_escondida[j] * x[i])
+
+        return taxas_correcao_pesos_saida, taxas_correcao_pesos_escondida
+
+#VAI MUDAR!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
     def erro_validacao(self, X: list, y_real: list):
         """ Calcula o erro de validação """
         erro_validacao = 0
@@ -195,6 +224,7 @@ class MultilayerPerceptron(object):
             y_ins, saidas_saida = self.camada_saida.calcula_saida(
                 saidas_escondida)
             """
+            #self.backPropagation(x, y_real, entradas_escondida, saidas_escondida, entradas_saida, saidas_saida)
             """Backpropagation"""
             # Calcula o erro e correção da camada de saída
             erro_saida, _, _ = self.camada_saida.calcula_correcao(
@@ -223,18 +253,14 @@ class MultilayerPerceptron(object):
             erro_validacao = 0
             
             for x, y_ in zip(X, y):
-                """Forward"""
+                
                 entradas_escondida, entradas_saida, saidas_escondida, saidas_saida = self.feedForward(x)
+                
+                taxas_correcao_pesos_saida, taxas_correcao_pesos_escondida = self.backPropagation(x, y, 
+                    entradas_escondida, saidas_escondida, entradas_saida, saidas_saida)
                 
 
                 """Backpropagation"""
-                # Calcula o erro e correção da camada de saída
-                erro_saida, correcao_saida, termos_inf_erro_saida = self.camada_saida.calcula_correcao(
-                    y_real=y_, y_calculado=saidas_saida, valores_in=entradas_saida, saidas_escondida=saidas_escondida)
-
-                # Calcula o erro e a e correção da camada escondida
-                correcao_escondida = self.camada_escondida.calcula_correcao(
-                    valores_in=entradas_escondida, entradas=x, termos_inf_erro_saida=termos_inf_erro_saida)
 
                 # Faz a alteração dos pesos da camada de saída e da camada escondida
                 self.altera_pesos(self.camada_saida, correcao_saida)
