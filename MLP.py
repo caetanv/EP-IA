@@ -1,6 +1,67 @@
 import random
 from perceptron import Perceptron
+import math
 
+class Neuronio():
+    def __init__(self, pesos, bias, taxa_aprendizado):
+        self.pesos = pesos
+        self.bias = bias
+        self.taxa_aprendizado = taxa_aprendizado
+
+    def sigmoide(self, valor_in: float):
+        """ Retorna o valor da função de ativação para o valor y_in """
+        return 1 / (1 + math.exp(-valor_in))
+
+    def derivada_sigmoide(self, y_in: float):
+        """ Retorna o valor da derivada da função de ativação para o valor y_in """
+        sig = self.sigmoide(y_in)
+        return sig* (1 - sig)
+
+    def calcula_saida(self, X: list):
+        """ Calcula a saída do perceptron para o valor X """
+        for col_num in range(len(X)):
+            valor_in = self.bias + sum([X[col_num] * self.pesos[col_num]])
+        return valor_in, self.sigmoide(valor_in)
+
+    def calcula_erro(self, y_real, y_calculado, valor_in):
+        """ Calcula o termo de informação do erro para o valor y_real e y_calculado """
+        erros = []
+        termos_inf_erro = []
+
+        if not isinstance(y_real, list):
+            erro = y_real - y_calculado
+            termo_inf_erro = erro * \
+                self.derivada_sigmoide(valor_in)
+            return [erro], [termo_inf_erro]
+
+        for y in y_real:
+            erro = y - y_calculado
+            termo_inf_erro = erro * self.derivada_sigmoide(valor_in)
+            erros.append(erro)
+            termos_inf_erro.append(termo_inf_erro)
+
+        return erros, termos_inf_erro
+
+    def calcula_correcao(self, termos_inf_erro, saida_camada):
+        """ Calcula a correção dos pesos do perceptron """
+        correcoes = []
+        termo_inf_erro = sum(termos_inf_erro) if isinstance(
+            termos_inf_erro, list) else termos_inf_erro
+
+        for j in self.pesos:
+            correcao = self.taxa_aprendizado * termo_inf_erro * saida_camada[j]
+            correcoes.append(correcao)
+
+        correcoes_bias = self.taxa_aprendizado * termo_inf_erro
+
+        return correcoes, correcoes_bias
+
+    def altera_pesos(self, correcao: dict):
+        """ Altera os pesos do perceptron """
+        for col_num in range(len(self.pesos)):
+            self.pesos[col_num] += correcao[0][col_num]
+            self.bias += correcao[1]
+        
 
 class CamadaMLP(object):
     """ Classe base para representar uma camada de uma rede neural multilayer perceptron"""
@@ -14,16 +75,17 @@ class CamadaMLP(object):
         for _ in range(self.quantidade_neuronios):
             pesos = {col_num: random.uniform(-1, 1) for col_num in range(quantidade_observacoes)}
             bias = random.random()
-            self.neuronios.append(Perceptron(pesos, bias, taxa_de_aprendizado))
+            self.neuronios.append(Neuronio(pesos, bias, taxa_de_aprendizado))
 
-    def calcula_saida(self, amostra):
+    def calcula_saida(self, amostra): #self, amostra, pesos
         """ Calcula a saída da camada de acordo com os valores de entrada X"""
         saidas = []  # lista da saída de cada neuronio da camada
         valores_ins = []  # lista da soma ponderada de cada neuronio da camada
 
         for neuronio in self.neuronios:
-            valor_in, saida = neuronio.calcula_saida(amostra)
-            saidas.append(saida)
+            for col_num in range(len(amostra)):
+                valor_in = neuronio.bias + sum([amostra[col_num] * neuronio.pesos[col_num]])
+            saidas.append(neuronio.sigmoide(valor_in))
             valores_ins.append(valor_in)
         return valores_ins, saidas
 
@@ -44,7 +106,7 @@ class CamadaEscondida(CamadaMLP):
             termo_inf_erro_saida = sum(termo_inf_erro_saida) if isinstance(
                 termo_inf_erro_saida, list) else termo_inf_erro_saida
             termo_inf_erro = sum(termo_inf_erro_saida * neuronio.pesos[indice_peso]
-                                 for indice_peso in neuronio.pesos) * neuronio.derivada_funcao_ativacao(valor_in)
+                                 for indice_peso in neuronio.pesos) * neuronio.derivada_sigmoide(valor_in)
 
             correcoes_pesos, correcao_bias = neuronio.calcula_correcao(
                 termo_inf_erro, entradas)
