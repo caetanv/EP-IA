@@ -17,11 +17,11 @@ class Perceptron(object):
 
     def calcula_saida(self, X: list):
         """ Calcula a saída do perceptron para o valor X """
-        valor_in = self.bias + sum([X[col_num] * self.pesos[col_num]
-                                    for col_num in range(len(X))])
+        for col_num in range(len(X)):
+            valor_in = self.bias + sum([X[col_num] * self.pesos[col_num]])
         return valor_in, self.funcao_ativacao(valor_in)
 
-    def calcula_erro(self, y_real: list or float, y_calculado: list or float, valor_in: list or float):
+    def calcula_erro(self, y_real, y_calculado, valor_in):
         """ Calcula o termo de informação do erro para o valor y_real e y_calculado """
         erros = []
         termos_inf_erro = []
@@ -40,7 +40,7 @@ class Perceptron(object):
 
         return erros, termos_inf_erro
 
-    def calcula_correcao(self, termos_inf_erro: list or float, saida_camada: list or float):
+    def calcula_correcao(self, termos_inf_erro, saida_camada):
         """ Calcula a correção dos pesos do perceptron """
         correcoes = []
         termo_inf_erro = sum(termos_inf_erro) if isinstance(
@@ -60,10 +60,3 @@ class Perceptron(object):
             self.pesos[col_num] += correcao[0][col_num]
             self.bias += correcao[1]
 
-    def converte_json(self):
-        """ Retorna o objeto em formato JSON """
-        return {
-            "media_pesos": sum(self.pesos.values()) / len(self.pesos),
-            "bias": self.bias,
-            "tx_aprendizagem": self.tx_aprendizagem
-        }

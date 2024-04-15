@@ -1,45 +1,44 @@
 import random
 from perceptron import Perceptron
-from gerenciador_logs import GerenciadorLogs
 
 
 class CamadaMLP(object):
     """ Classe base para representar uma camada de uma rede neural multilayer perceptron"""
 
-    def __init__(self, n_neuronios: int):
-        self.n_neuronios = n_neuronios
+    def __init__(self, quantidade_neuronios):
+        self.quantidade_neuronios = quantidade_neuronios
         self.neuronios = []
 
-    def inicializa_pesos(self, n_observacoes: int, tx_aprendizagem: float):
+    def inicializa_pesos(self, quantidade_observacoes, taxa_de_aprendizado):
         """ Inicializa os pesos dos neuronios da camada de acordo com o número de observações na base de treino """
-        for _ in range(self.n_neuronios):
+        for _ in range(self.quantidade_neuronios):
             pesos = {col_num: random.uniform(-0.5, 0.5)
-                     for col_num in range(n_observacoes)}
+                     for col_num in range(quantidade_observacoes)}
             bias = random.random()
-            self.neuronios.append(Perceptron(pesos, bias, tx_aprendizagem))
+            self.neuronios.append(Perceptron(pesos, bias, taxa_de_aprendizado))
 
-    def calcula_saida(self, X: list):
+    def calcula_saida(self, amostra):
         """ Calcula a saída da camada de acordo com os valores de entrada X"""
         saidas = []  # lista da saída de cada neuronio da camada
         valores_ins = []  # lista da soma ponderada de cada neuronio da camada
 
         for neuronio in self.neuronios:
-            valor_in, saida = neuronio.calcula_saida(X)
+            valor_in, saida = neuronio.calcula_saida(amostra)
             saidas.append(saida)
             valores_ins.append(valor_in)
         return valores_ins, saidas
 
 
 class CamadaEntrada(CamadaMLP):
-    def __init__(self, n_neuronios: int):
-        super().__init__(n_neuronios)
+    def __init__(self, quantidade_neuronios):
+        super().__init__(quantidade_neuronios)
 
 
 class CamadaEscondida(CamadaMLP):
-    def __init__(self, n_neuronios: int):
-        super().__init__(n_neuronios)
+    def __init__(self, quantidade_neuronios):
+        super().__init__(quantidade_neuronios)
 
-    def calcula_correcao(self, valores_in: list, entradas: list, termos_inf_erro_saida: list):
+    def calcula_correcao(self, valores_in, entradas, termos_inf_erro_saida):
         """ Calcula o erro e as devidas correções dos pesos dos neuronios da camada escondida """
         correcoes = {}
         for indice, (neuronio, valor_in, termo_inf_erro_saida) in enumerate(zip(self.neuronios, valores_in, termos_inf_erro_saida)):
@@ -55,8 +54,8 @@ class CamadaEscondida(CamadaMLP):
 
 
 class CamadaSaida(CamadaMLP):
-    def __init__(self, n_neuronios: int):
-        super().__init__(n_neuronios)
+    def __init__(self, quantidade_neuronios):
+        super().__init__(quantidade_neuronios)
 
     def calcula_correcao(self, y_real: list, y_calculado: list, valores_in: list, saidas_escondida: list):
         """ Calcula o erro e as devidas correções da camada de saída """
@@ -87,17 +86,17 @@ class MultilayerPerceptron(object):
         Número de neurônios na camada escondida
     n_saida: int
         Número de neurônios na camada de saída
-    tx_aprendizagem: float
+    taxa_de_aprendizado: float
         Taxa de aprendizagem utilizada no treinamento
     """
 
-    def __init__(self, n_entrada: int, n_escondida: int, n_saida: int, tx_aprendizagem=0.1, limiar: float = 0.0001, gerenciador_logs: GerenciadorLogs = None):
-        self.camada_entrada = CamadaEntrada(n_entrada)
-        self.camada_escondida = CamadaEscondida(n_escondida)
-        self.camada_saida = CamadaSaida(n_saida)
-        self.tx_aprendizagem = tx_aprendizagem
+    def __init__(self, quantidade_entrada, quantidade_escondida, quantidade_saida, 
+                 taxa_de_aprendizado=0.1, limiar: float = 0.0001):
+        self.camada_entrada = CamadaEntrada(quantidade_entrada)
+        self.camada_escondida = CamadaEscondida(quantidade_escondida)
+        self.camada_saida = CamadaSaida(quantidade_saida)
+        self.taxa_de_aprendizado = taxa_de_aprendizado
         self.limiar = limiar
-        self.gerenciador_logs = gerenciador_logs
 
     def altera_pesos(self, camada: CamadaMLP, correcoes: list):
         """ Altera os pesos dos neuronios da camada de acordo com as correções """
@@ -150,9 +149,9 @@ class MultilayerPerceptron(object):
         """ Treina a rede neural multilayer por meio do algoritmo de backpropagation na sua forma de gradiente descendente """
 
         self.camada_escondida.inicializa_pesos(
-            self.camada_entrada.n_neuronios, tx_aprendizagem=self.tx_aprendizagem)
+            self.camada_entrada.quantidade_neuronios, taxa_de_aprendizado=self.taxa_de_aprendizado)
         self.camada_saida.inicializa_pesos(
-            self.camada_escondida.n_neuronios, tx_aprendizagem=self.tx_aprendizagem)
+            self.camada_escondida.quantidade_neuronios, taxa_de_aprendizado=self.taxa_de_aprendizado)
 
         
         qtde_epocas_sem_melhora = 0
@@ -196,8 +195,8 @@ class MultilayerPerceptron(object):
                 qtde_epocas_sem_melhora = 0 if (melhoria or epoca == 0) else qtde_epocas_sem_melhora + 1
                 erro_validacao = erro_val
 
-            self.gerenciador_logs.adiciona_log(self.__class__.__name__, x,  saidas_saida, self.camada_escondida.neuronios,
-                                               self.camada_saida.neuronios, self.tx_aprendizagem, epoca, -1, self.limiar, epocas, erro_epoca, erro_validacao)
+           # self.gerenciador_logs.adiciona_log(self.__class__.__name__, x,  saidas_saida, self.camada_escondida.neuronios,
+            #                                   self.camada_saida.neuronios, self.taxa_de_aprendizado, epoca, -1, self.limiar, epocas, erro_epoca, erro_validacao)
 
             print(f"Epoca: {epoca} - Erro: {erro_epoca} - Erro de validação: {erro_validacao}")
 
@@ -209,12 +208,12 @@ class MultilayerPerceptron(object):
         predito = []
 
         for x in X:
-            _, saidas_escondida = self.camada_escondida.calcula_saida(x)
+            _, saidas_escondida = self.camada_escondida.calcula_saida(X)
             _, saidas_saida = self.camada_saida.calcula_saida(saidas_escondida)
             predito.append(saidas_saida)
 
         return predito
-    
+'''   
     def gera_matriz_de_confusao(self, X: list, y: list):
         letras = ["A", "B", "C", "D", "E", "J", "K", "L", "V", "Y", "Z"]
 
@@ -268,51 +267,4 @@ class MultilayerPerceptron(object):
             matriz_de_confusao[indice_esperado][indice_predito] += 1
 
         return matriz_de_confusao
-
-    def to_json(self):
-        """Função que desserializa a rede neural e transforma em um objeto json"""
-        modelo = {
-            'tx_aprendizagem': self.tx_aprendizagem,
-            'camada_entrada':  self.camada_entrada.n_neuronios,
-            'camada_escondida': {
-                'n_neuronios': self.camada_escondida.n_neuronios,
-                'neuronios': [
-                    {
-                        'pesos': neuronio.pesos,
-                        'bias': neuronio.bias
-                    } for neuronio in self.camada_escondida.neuronios
-
-                ]
-            },
-            'camada_saida': {
-                'n_neuronios': self.camada_saida.n_neuronios,
-                'neuronios': [
-                    {
-                        'pesos': neuronio.pesos,
-                        'bias': neuronio.bias
-                    } for neuronio in self.camada_saida.neuronios
-                ]
-            }
-        }
-        return modelo
-
-    def from_json(modelo):
-        """Função que serializa a rede neural e transforma em um objeto python"""
-        mlp = MultilayerPerceptron(
-            modelo['camada_entrada'],
-            modelo['camada_escondida']['n_neuronios'],
-            modelo['camada_saida']['n_neuronios'],
-            modelo['tx_aprendizagem']
-        )
-
-        for neuronio in modelo['camada_escondida']['neuronios']:
-            pesos = {int(indice): valor for indice,
-                     valor in neuronio['pesos'].items()}
-            mlp.camada_escondida.neuronios.append(
-                Perceptron(pesos, neuronio['bias'], mlp.tx_aprendizagem))
-        for neuronio in modelo['camada_saida']['neuronios']:
-            pesos = {int(indice): valor for indice,
-                     valor in neuronio['pesos'].items()}
-            mlp.camada_saida.neuronios.append(
-                Perceptron(pesos, neuronio['bias'], mlp.tx_aprendizagem))
-        return mlp
+''' 
