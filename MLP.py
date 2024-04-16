@@ -3,9 +3,8 @@ from perceptron import Perceptron
 import math
 
 class Neuronio():
-    def __init__(self, pesos, bias, taxa_aprendizado):
+    def __init__(self, pesos, taxa_aprendizado):
         self.pesos = pesos
-        self.bias = bias
         self.taxa_aprendizado = taxa_aprendizado
 
     def sigmoide(self, valor_in: float):
@@ -57,13 +56,14 @@ class CamadaMLP(object):
     def __init__(self, quantidade_neuronios):
         self.quantidade_neuronios = quantidade_neuronios
         self.neuronios = []
+        self.bias = random.uniform(-1, 1)
 
     def inicializa_pesos(self, quantidade_observacoes, taxa_de_aprendizado):
         """ Inicializa os pesos dos neuronios da camada de acordo com o número de observações na base de treino """
         for _ in range(self.quantidade_neuronios):
             pesos = {col_num: random.uniform(-1, 1) for col_num in range(quantidade_observacoes)}
-            bias = random.uniform(-1, 1)
-            self.neuronios.append(Neuronio(pesos, bias, taxa_de_aprendizado))
+            
+            self.neuronios.append(Neuronio(pesos, taxa_de_aprendizado))
 
     def calcula_saida(self, amostra): #self, amostra, pesos
         """ Calcula a saída da camada de acordo com os valores de entrada X"""
@@ -72,7 +72,7 @@ class CamadaMLP(object):
 
         for neuronio in self.neuronios:
             for col_num in range(len(amostra)):
-                valor_in = neuronio.bias + sum([amostra[col_num] * neuronio.pesos[col_num]])
+                valor_in = self.bias + sum([amostra[col_num] * neuronio.pesos[col_num]])
 
             saidas.append(neuronio.sigmoide(valor_in))
             valores_ins.append(valor_in)
@@ -154,7 +154,7 @@ class MultilayerPerceptron(object):
         for neuronio, correcao in zip(camada.neuronios, correcoes):
             for col_num in range(len(neuronio.pesos)):
                 neuronio.pesos[col_num] += correcoes[correcao][0][col_num]
-                neuronio.bias += correcoes[correcao][1]
+                camada.bias += correcoes[correcao][1]
 
     def checa_melhora_validacao(self, erros_validacao: list):
         """ Checa se a taxa de erro da validacao aumentou """
