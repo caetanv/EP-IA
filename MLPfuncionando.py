@@ -1,4 +1,6 @@
 import numpy as np
+import csv
+import matplotlib.pyplot as plt
 
 class MLP:
     def __init__(self, input_size, hidden_size, output_size):
@@ -136,6 +138,7 @@ y = one_hot_encode(rotulos_letras)
 mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 mlp.train(X, y, epochs=num_epocas)
 
+mlp.save_weights()
 
 exemplo = [[ 1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1 ]]
 print(exemplo)
@@ -143,3 +146,25 @@ previsao = mlp.predict(exemplo)
 letra_prevista_index = np.argmax(previsao)
 letra_prevista = chr(ord('a') + letra_prevista_index)  # Converter o índice para a letra correspondente
 print("Letra prevista:", letra_prevista)
+
+
+
+# Carregar os pesos treinados
+mlp = MLP(input_size=120, hidden_size=10, output_size=26)
+mlp.load_weights()
+# Dados de entrada de exemplo
+X_example = np.random.randn(1, 120)  # Vetor de entrada de exemplo
+y_example = np.array([3])  # Rótulo de exemplo
+
+# Forward pass
+hidden_input = np.dot(X_example, mlp.weights_input_hidden)
+hidden_output = mlp.sigmoid(hidden_input)
+output_input = np.dot(hidden_output, mlp.weights_hidden_output)
+output = mlp.sigmoid(output_input)
+
+# Obter previsão
+y_pred_example = np.argmax(output, axis=1)
+print("Rótulo verdadeiro:", y_example)
+print("Rótulo previsto:", y_pred_example)
+
+
