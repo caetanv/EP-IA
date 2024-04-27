@@ -276,10 +276,25 @@ def cross_validation(X, y, num_folds, input_size, hidden_size, output_size, epoc
 num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
 num_epocas = int(input("Digite o número de épocas: "))
 tx_aprendizado = float(input("Digite a taxa de treinamento: "))
-parada_antecipada = bool(input("Parada antecipada? true or false "))
-pat = int(input("Patience? "))
-validacao_cruzada = bool(input("Validação Cruzada? true or false "))
-num_vezes = int(input("Num Folds: "))
+parada_antecipada_str = input("Parada antecipada? true or false ")
+# Converter a entrada para um valor booleano
+if parada_antecipada_str == "true":
+    parada_antecipada = True
+else:
+    parada_antecipada = False
+if parada_antecipada:
+    pat = int(input("Patience? "))
+else:
+    pat=20
+validacao_cruzada_str = input("Validação Cruzada? true or false ")
+if validacao_cruzada_str == "true":
+    validacao_cruzada = True
+else:
+    validacao_cruzada = False
+if validacao_cruzada:
+    num_vezes = int(input("Num Folds: "))
+else:
+    num_vezes = 5
 
 # Carregar os dados
 X = ler_dados_entrada('x26.txt')
@@ -298,19 +313,15 @@ y_encoded = one_hot_encode(rotulos_letras)
 mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 mlp.load_weights()
 
-# Treinamento da MLP com parada antecipada
-mse = mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, early_stopping=parada_antecipada, patience=pat)
-
-
-# Exemplo de uso da validação cruzada
-mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=0.1, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
+# Treinamento da MLP com Hyperparametros
+mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
 # Salvar Pesos em csv
 mlp.save_weights()
 
 # Letra B
 X_example = [[ 1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1]]  # Vetor de entrada de exemplo
-y_example = "B"  # Rótulo de exemplo
+y_example = ["B"]  # Rótulo de exemplo
 previsao = mlp.predict(X_example)
 letra_prevista_index = np.argmax(previsao)
 letra_prevista = chr(ord('a') + letra_prevista_index)  # Converter o índice para a letra correspondente
