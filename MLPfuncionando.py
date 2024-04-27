@@ -311,13 +311,13 @@ y_encoded = one_hot_encode(rotulos_letras)
 
 # Carregar os pesos treinados
 mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
-mlp.load_weights()
+#mlp.load_weights()
 
 # Treinamento da MLP com Hyperparametros
 mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
 # Salvar Pesos em csv
-mlp.save_weights()
+#mlp.save_weights()
 
 # Letra B
 X_example = [[ 1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1]]  # Vetor de entrada de exemplo
