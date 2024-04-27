@@ -1,6 +1,8 @@
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
+import ipywidgets as widgets
+from IPython.display import display
 
 class MLP:
     def __init__(self, input_size, hidden_size, output_size):
@@ -152,16 +154,16 @@ class MLP:
 
             return output
 
-    def save_weights(self):
-        with open('pesos.csv', 'w', newline='') as csvfile:
+    def save_weights(self, filename = 'pesos.csv'):
+        with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Pesos da camada de entrada para oculta'])
             writer.writerows(self.weights_input_hidden)
             writer.writerow(['Pesos da camada oculta para saída'])
             writer.writerows(self.weights_hidden_output)
 
-    def load_weights(self):
-        with open('pesos.csv', newline='') as csvfile:
+    def load_weights(self, filename='pesos.csv'):
+        with open(filename, newline='') as csvfile:
             reader = csv.reader(csvfile)
             weights_input_hidden = []
             weights_hidden_output = []
@@ -270,8 +272,6 @@ def cross_validation(X, y, num_folds, input_size, hidden_size, output_size, epoc
     return mse_values
 
 
-
-
 # Obter número de camadas escondidas e épocas
 num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
 num_epocas = int(input("Digite o número de épocas: "))
@@ -290,11 +290,11 @@ y_encoded = one_hot_encode(rotulos_letras)
 
 
 # Carregar os pesos treinados
-mlp = MLP(input_size=120, hidden_size=10, output_size=26)
+mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 mlp.load_weights()
 
 # Treinamento da MLP com parada antecipada
-mse = mlp.train(X, y_encoded, epochs=2000, learning_rate=0.1, early_stopping=True, patience=20)
+mse = mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=0.1, early_stopping=True, patience=20)
 
 # Salvar Pesos em csv
 mlp.save_weights()
