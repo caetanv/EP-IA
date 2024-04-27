@@ -275,6 +275,11 @@ def cross_validation(X, y, num_folds, input_size, hidden_size, output_size, epoc
 # Obter número de camadas escondidas e épocas
 num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
 num_epocas = int(input("Digite o número de épocas: "))
+tx_aprendizado = float(input("Digite a taxa de treinamento: "))
+parada_antecipada = bool(input("Parada antecipada? true or false "))
+pat = int(input("Patience? "))
+validacao_cruzada = bool(input("Validação Cruzada? true or false "))
+num_vezes = int(input("Num Folds: "))
 
 # Carregar os dados
 X = ler_dados_entrada('x26.txt')
@@ -294,46 +299,22 @@ mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 mlp.load_weights()
 
 # Treinamento da MLP com parada antecipada
-mse = mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=0.1, early_stopping=True, patience=20)
+mse = mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, early_stopping=parada_antecipada, patience=pat)
+
+
+# Exemplo de uso da validação cruzada
+mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=0.1, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
 # Salvar Pesos em csv
 mlp.save_weights()
 
-
-# Dados de entrada de exemplo
 # Letra B
 X_example = [[ 1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1]]  # Vetor de entrada de exemplo
 y_example = "B"  # Rótulo de exemplo
-
-# Forward pass
-hidden_input = np.dot(X_example, mlp.weights_input_hidden)
-hidden_output = mlp.sigmoid(hidden_input)
-output_input = np.dot(hidden_output, mlp.weights_hidden_output)
-output = mlp.sigmoid(output_input)
-
-# Obter previsão
-y_pred_example = np.argmax(output, axis=1)
-print("Rótulo verdadeiro:", y_example)
-print("Rótulo previsto:", y_pred_example)
-
-
-# Letra A
-exemplo = [[ 1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1, -1, -1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1, -1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1, -1, -1,  1, -1, -1,  1,  1,  1,  1,  1,  1,  1, -1, -1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1]]
-print(exemplo)
-previsao = mlp.predict(exemplo)
+previsao = mlp.predict(X_example)
 letra_prevista_index = np.argmax(previsao)
 letra_prevista = chr(ord('a') + letra_prevista_index)  # Converter o índice para a letra correspondente
 print("Letra prevista:", letra_prevista)
-
-
-# Exemplo de uso da validação cruzada
-mlp.train(X, y_encoded, epochs=1000, learning_rate=0.1, use_cross_validation=True, num_folds=5, early_stopping=True, patience=10)
-
-
-
-# Exemplo de uso da MLP treinada
-X_test = np.random.randn(1, 120)  # Vetor de entrada de exemplo
-hidden_input = np.dot
 
 # Apresentar a matriz de confusão
 # mlp.plot_confusion_matrix(X, Y)
