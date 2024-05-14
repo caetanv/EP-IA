@@ -1,8 +1,6 @@
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
-import ipywidgets as widgets
-from IPython.display import display
 
 class MLP:
     def __init__(self, input_size, hidden_size, output_size):
@@ -22,7 +20,7 @@ class MLP:
         # Função sigmoidal com os valores de entrada clipados
         return 1 / (1 + np.exp(-clipped_x))
 
-    def sigmoid_derivative(self, x):
+    def sigmoidDerivative(self, x):
         return x * (1 - x)
 
     # Loop do procedimento de treinamento
@@ -60,10 +58,10 @@ class MLP:
 
             # Backpropagation
             # Procedimento de cálculo de informação de erro para a retropropagação
-            output_delta = output_error * self.sigmoid_derivative(output)
+            output_delta = output_error * self.sigmoidDerivative(output)
             # Procedimento de cálculo de contribuição de erro na camada escondida
             hidden_error = output_delta.dot(self.weights_hidden_output.T)
-            hidden_delta = hidden_error * self.sigmoid_derivative(hidden_output)
+            hidden_delta = hidden_error * self.sigmoidDerivative(hidden_output)
 
             # Atualização dos pesos
             # Taxa de aprendizado.
@@ -78,9 +76,34 @@ class MLP:
 
         return mse
 
+    def feedForward (self, X_train):
+        #Aplica pesos para entrada da camada escondida e aplica a função de ativação
+        hidden_input = np.dot(X_train, self.weights_input_hidden)
+        hidden_output = self.sigmoid(hidden_input)
+
+        #Aplica pesos para entrada da camada de saída e aplica a função de ativação, com a saída final
+        output_input = np.dot(hidden_output, self.weights_hidden_output)
+        output = self.sigmoid(output_input)
+
+        return hidden_output, output
+    
+    def updateWeights (self, X_train, hidden_output, hidden_delta, output_delta, learning_rate):
+        self.weights_hidden_output += hidden_output.T.dot(output_delta) * learning_rate
+        self.weights_input_hidden += X_train.T.dot(hidden_delta) * learning_rate
+
+
+    def backPropagation (self, y_train, hidden_output, output):
+        #Calcula os deltas de diferença para camada escondida e saída
+        output_error = y_train - output
+        output_delta = output_error * output * (1 - output)
+        hidden_error = output_delta.dot(self.weights_hidden_output.T)
+        hidden_delta = hidden_error * hidden_output * (1 - hidden_output)
+
+        return output_delta, hidden_delta
+    
     # Treinamento com Parada antecipada e cross validation
-    def train(self, X, y, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
-        if use_cross_validation:
+    def train(self, X, y, epochs=1000, learning_rate=0.1, use_crossValidation=False, num_folds=5, early_stopping=False, patience=10):
+        if use_crossValidation:
             fold_size = len(X) // num_folds
             mse_values = []
 
@@ -95,42 +118,35 @@ class MLP:
                 X_val = X[start_idx:end_idx]
                 y_val = y[start_idx:end_idx]
 
-                mse = self._train_single_fold(X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience)
+                mse = self.trainSingleFold(X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience)
                 mse_values.append(mse)
 
             print(f"Mean MSE across {num_folds} folds: {np.mean(mse_values):.4f}")
 
         else:
-            self._train_single_fold(X, y, X, y, epochs, learning_rate, early_stopping, patience)
+            self.trainSingleFold(X, y, X, y, epochs, learning_rate, early_stopping, patience)
 
-    def _train_single_fold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
+    def trainSingleFold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
         best_mse = float('inf')
         patience_count = 0
 
         for epoch in range(epochs):
             # Forward pass
-            hidden_input = np.dot(X_train, self.weights_input_hidden)
-            hidden_output = self.sigmoid(hidden_input)
-            output_input = np.dot(hidden_output, self.weights_hidden_output)
-            output = self.sigmoid(output_input)
+            hidden_output, output = self.feedForward(X_train)
 
             # Backpropagation
-            output_error = y_train - output
-            output_delta = output_error * output * (1 - output)
-            hidden_error = output_delta.dot(self.weights_hidden_output.T)
-            hidden_delta = hidden_error * hidden_output * (1 - hidden_output)
+            output_delta, hidden_delta = self.backPropagation(y_train, hidden_output, output)
 
-            # Update weights
-            self.weights_hidden_output += hidden_output.T.dot(output_delta) * learning_rate
-            self.weights_input_hidden += X_train.T.dot(hidden_delta) * learning_rate
+            #Atualizar pesos
+            self.updateWeights(X_train, hidden_output, hidden_delta, output_delta, learning_rate)
 
-            # Calculate MSE on validation set
+            #Calcular erro quadrático médio (MSE) no conjunto de validação
             if (epoch + 1) % 100 == 0:
                 val_pred = self.predict(X_val)
                 mse = np.mean((y_val - val_pred) ** 2)
-                print(f"Epoch {epoch + 1}, Validation MSE: {mse:.4f}")
+                print(f"Época {epoch + 1}, MSE de validação: {mse:.4f}")
 
-                # Early stopping
+                #Parada antecipada
                 if early_stopping:
                     if mse < best_mse:
                         best_mse = mse
@@ -138,7 +154,7 @@ class MLP:
                     else:
                         patience_count += 1
                         if patience_count >= patience:
-                            print(f"Early stopping at epoch {epoch + 1}")
+                            print(f"Parada antecipada na época {epoch + 1}")
                             break
 
         return mse
@@ -154,7 +170,7 @@ class MLP:
 
             return output
 
-    def save_weights(self, filename = 'pesos.csv'):
+    def saveWeights(self, filename = 'pesos.csv'):
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Pesos da camada de entrada para oculta'])
@@ -162,7 +178,7 @@ class MLP:
             writer.writerow(['Pesos da camada oculta para saída'])
             writer.writerows(self.weights_hidden_output)
 
-    def load_weights(self, filename='pesos.csv'):
+    def loadWeights(self, filename='pesos.csv'):
         with open(filename, newline='') as csvfile:
             reader = csv.reader(csvfile)
             weights_input_hidden = []
@@ -183,7 +199,7 @@ class MLP:
         self.weights_hidden_output = np.array(weights_hidden_output)
 
 
-    def plot_confusion_matrix(self, y_true, y_pred):
+    def plotConfusionMatrix(self, y_true, y_pred):
         # Calcular a matriz de confusão
         # Procedimento de cálculo da matriz de confusão
         num_classes = self.output_size
@@ -205,7 +221,7 @@ class MLP:
 
 # Função para transformar os rótulos de letras em códigos binários
 # Procedimento de cálculo da resposta da rede em termos de reconhecimento do caractere
-def one_hot_encode(labels):
+def oneHotEncode(labels):
     unique_labels = np.unique(labels)
     num_labels = len(unique_labels)
     encoding = np.zeros((len(labels), num_labels))
@@ -216,25 +232,24 @@ def one_hot_encode(labels):
 
 # Leitura dos dados de entrada e remoção de valores vazios
 # Camada de entrada da rede neural.
-def ler_dados_entrada(nome_arquivo):
-    dados = []
-    rotulos = []
-    with open(nome_arquivo, 'r') as arquivo:
-        linhas = arquivo.readlines()
-        for linha in linhas:
-            valores = linha.strip().split(',')
-            valores = [int(valor) for valor in valores if valor.strip()]  # Remover valores vazios
-            if valores:  # Se a linha não estiver vazia após a remoção dos valores vazios
-                dados.append(valores)
-    return np.array(dados)
+def readEntryData(file_name):
+    data = []
+    with open(file_name, 'r') as file:
+        lines = file.readlines()
+        for line in lines:
+            values = line.strip().split(',')
+            values = [int(value) for value in values if value.strip()]  # Remover valores vazios
+            if values:  # Se a linha não estiver vazia após a remoção dos valores vazios
+                data.append(values)
+    return np.array(data)
 
 # Leitura dos rótulos de letras
-def ler_rotulos_letras(nome_arquivo):
-    with open(nome_arquivo, 'r') as arquivo:
-        rotulos = arquivo.readlines()
-    return [rotulo.strip() for rotulo in rotulos]
+def readLetterLabel(nome_arquivo):
+    with open(nome_arquivo, 'r') as file:
+        labels = file.readlines()
+    return [label.strip() for label in labels]
 
-def split_data(X, y, num_folds):
+def splitData(X, y, num_folds):
     fold_size = len(X) // num_folds
     indices = np.arange(len(X))
     np.random.shuffle(indices)
@@ -249,9 +264,9 @@ def split_data(X, y, num_folds):
         y_folds.append(y_shuffled[start:end])
     return X_folds, y_folds
 
-def cross_validation(X, y, num_folds, input_size, hidden_size, output_size, epochs=1000, learning_rate=0.1):
+def crossValidation(X, y, num_folds, input_size, hidden_size, output_size, epochs=1000, learning_rate=0.1):
     mlp = MLP(input_size=input_size, hidden_size=hidden_size, output_size=output_size)
-    X_folds, y_folds = split_data(X, y, num_folds)
+    X_folds, y_folds = splitData(X, y, num_folds)
     mse_values = []
     for i in range(num_folds):
         X_train = np.concatenate([X_folds[j] for j in range(num_folds) if j != i])
@@ -268,7 +283,7 @@ def cross_validation(X, y, num_folds, input_size, hidden_size, output_size, epoc
         output = mlp.sigmoid(output_input)
         y_pred = np.argmax(output, axis=1)
         y_true = np.argmax(y_test, axis=1)
-        mlp.plot_confusion_matrix(y_true, y_pred)
+        mlp.plotConfusionMatrix(y_true, y_pred)
     return mse_values
 
 
@@ -297,8 +312,8 @@ else:
     num_vezes = 5
 
 # Carregar os dados
-X = ler_dados_entrada('x26.txt')
-rotulos_letras = ler_rotulos_letras('y26.txt')
+X = readEntryData('x26.txt')
+rotulos_letras = readLetterLabel('y26.txt')
 
 # Verificar se o número de amostras de entrada é igual ao número de rótulos
 if len(X) != len(rotulos_letras):
@@ -306,18 +321,18 @@ if len(X) != len(rotulos_letras):
     exit()
 
 # Transformar os rótulos de letras em códigos binários
-y_encoded = one_hot_encode(rotulos_letras)
+y_encoded = oneHotEncode(rotulos_letras)
 
 
 # Carregar os pesos treinados
 mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
-#mlp.load_weights()
+#mlp.loadWeights()
 
 # Treinamento da MLP com Hyperparametros
-mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
+mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_crossValidation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
 # Salvar Pesos em csv
-#mlp.save_weights()
+#mlp.saveWeights()
 
 # Letra B
 X_example = [[ 1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1]]  # Vetor de entrada de exemplo
@@ -328,4 +343,4 @@ letra_prevista = chr(ord('a') + letra_prevista_index)  # Converter o índice par
 print("Letra prevista:", letra_prevista)
 
 # Apresentar a matriz de confusão
-# mlp.plot_confusion_matrix(X, Y)
+# mlp.plotConfusionMatrix(X, Y)
