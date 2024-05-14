@@ -121,7 +121,8 @@ class MLP:
                 mse = self.trainSingleFold(X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience)
                 mse_values.append(mse)
 
-            print(f"Mean MSE across {num_folds} folds: {np.mean(mse_values):.4f}")
+            print(f"MSE sobre {num_folds} folds: {np.mean(mse_values):.4f}")
+            print(f"Desvio padrão de MSE sobre {num_folds} folds: {np.std(mse_values):.4f}")
 
         else:
             self.trainSingleFold(X, y, X, y, epochs, learning_rate, early_stopping, patience)
@@ -175,7 +176,7 @@ class MLP:
             writer = csv.writer(csvfile)
             writer.writerow(['Pesos da camada de entrada para oculta'])
             writer.writerows(self.weights_input_hidden)
-            writer.writerow(['Pesos da camada oculta para saída'])
+            writer.writerow(['Pesos da camada oculta para saida'])
             writer.writerows(self.weights_hidden_output)
 
     def loadWeights(self, filename='pesos.csv'):
@@ -332,7 +333,7 @@ mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 mlp.train(X, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_crossValidation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
 # Salvar Pesos em csv
-#mlp.saveWeights()
+mlp.saveWeights()
 
 # Letra B
 X_example = [[ 1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1, -1, -1, -1, -1, -1, -1,  1,  1,  1,  1]]  # Vetor de entrada de exemplo
@@ -343,4 +344,4 @@ letra_prevista = chr(ord('a') + letra_prevista_index)  # Converter o índice par
 print("Letra prevista:", letra_prevista)
 
 # Apresentar a matriz de confusão
-# mlp.plotConfusionMatrix(X, Y)
+#mlp.plotConfusionMatrix(y_example, letra_prevista_index)
