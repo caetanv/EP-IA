@@ -1,0 +1,41 @@
+import numpy as np
+from sklearn.neural_network import MLPClassifier
+
+# Vetor de pixels representando uma letra 'A' (exemplo de entrada)
+# Suponha que cada letra do alfabeto seja representada por um vetor de 120 valores
+# Onde 1 significa pixel pintado e -1 significa pixel não pintado
+
+# Exemplo: vetor de pixels para a letra 'A' (representação simplificada)
+vetor_A = np.array([1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, 1, -1,
+                    1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, -1])
+
+# Rótulo correspondente à letra 'A'
+rotulo_A = 'A'
+
+# Crie uma lista de vetores de pixels e rótulos correspondentes
+dados = [vetor_A]  # Adicione mais letras e seus vetores de pixels conforme necessário
+rotulos = [rotulo_A]  # Adicione os rótulos correspondentes
+
+# Converta para arrays numpy
+X = np.array(dados)  # Features (vetores de pixels)
+y = np.array(rotulos)  # Rótulos (letras do alfabeto)
+
+# Crie um modelo MLPClassifier
+mlp = MLPClassifier(hidden_layer_sizes=(50,), max_iter=100, alpha=1e-4,
+                    solver='sgd', verbose=10, random_state=1,
+                    learning_rate_init=0.1)
+
+# Treine o modelo com os dados
+mlp.fit(X, y)
+
+# Após treinar o modelo, você pode fazer previsões para novos dados
+
+# Exemplo de previsão para um novo vetor de pixels (representando uma letra)
+novo_vetor = np.array([1, -1, 1, -1, 1, -1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1, 1, -1,
+                        1, 1, 1, -1, -1, -1, 1, 1, 1, -1, -1, -1])
+
+# Faça a previsão usando o modelo treinado
+previsao = mlp.predict([novo_vetor])
+
+# Imprima a letra prevista
+print("Letra prevista:", previsao[0])
