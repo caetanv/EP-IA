@@ -2,9 +2,6 @@ import numpy as np
 import csv
 import os
 import matplotlib.pyplot as plt
-import ipywidgets as widgets
-from IPython.display import display
-
 
 # https://github.com/EdgarLiraa/IA-Multilayer-Perceptron/blob/main/rede.py
 
@@ -117,7 +114,7 @@ class MLP:
 
 
     
-    def forward_pass(self, X):
+    def forward_pass(self, X_train):
         # Calcular a entrada líquida para a camada oculta
         hidden_input = np.dot(X_train, self.weights_input_hidden) + self.bias_hidden
         # Aplicar a função de ativação
@@ -192,10 +189,12 @@ class MLP:
             # Avalia o modelo no conjunto de validação
             predictions = self.predict(X_val)
             true_labels = np.argmax(y_val, axis=1)
-            accuracy = np.mean(predictions == true_labels)
+            accuracy = np.mean(np.argmax(predictions, axis=1) == true_labels)
             accuracies.append(accuracy)
 
             print(f"Fold {i + 1} Accuracy: {accuracy:.4f}")
+
+            print (f"Acurácia do modelo: {np.mean(accuracies)}")
         return accuracies
 
 
