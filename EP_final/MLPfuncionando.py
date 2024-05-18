@@ -300,20 +300,24 @@ if __name__ == "__main__":
     num_epocas = int(input("Digite o número de épocas: "))
     tx_aprendizado = float(input("Digite a taxa de treinamento: "))
     parada_antecipada_str = input("Parada antecipada? true or false ")
+
     # Converter a entrada para um valor booleano
     if parada_antecipada_str == "true":
         parada_antecipada = True
     else:
         parada_antecipada = False
+
     if parada_antecipada:
         pat = int(input("Patience? "))
     else:
         pat=20
+
     validacao_cruzada_str = input("Validação Cruzada? true or false ")
     if validacao_cruzada_str == "true":
         validacao_cruzada = True
     else:
         validacao_cruzada = False
+        
     if validacao_cruzada:
         num_vezes = int(input("Num Folds: "))
     else:
