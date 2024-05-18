@@ -19,6 +19,9 @@ class MLP:
         self.bias_output = np.zeros(output_size)
 
         self.weights_filename = weights_filename
+
+        self.Valores_MSE = []
+        self.épocas = []
         
         # Carregar os pesos salvos se o arquivo existir
         #self.load_weights()
@@ -58,6 +61,8 @@ class MLP:
             if (epoch + 1) % 100 == 0:
                 val_pred = self.predict(X_val)
                 mse = np.mean((y_val - val_pred) ** 2)
+                self.Valores_MSE.append(mse)
+                self.épocas.append(epoch)
                 print(f"Epoch {epoch + 1}, Validation MSE: {mse:.4f}")
 
                 # Early stoppingot(self.sigmoid(output).T, ou
@@ -279,6 +284,16 @@ def letras_para_indices(vetor_letras):
 def transformar_rotulos(labels):
     return [letras_para_indices(label) for label in labels]
 
+def plot_gráfico(listax, listay):
+
+        plt.plot(listax, listay, marker='o')
+
+        plt.title('Gráfico de MSE em ralação às épocas')
+        plt.xlabel('Valor do MSE')
+        plt.ylabel('Épocas`')
+
+        plt.show()
+
 if __name__ == "__main__":
     # Obter número de camadas escondidas e épocas
     num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
@@ -348,5 +363,9 @@ if __name__ == "__main__":
     print(len(X_train))
     print(len(y_true))
 
+    y = mlp.Valores_MSE
+    x = mlp.épocas
+
+    plot_gráfico(x,y)
     confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
     mlp.plot_confusion_matrix(confusion_matrix, classes)
