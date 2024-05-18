@@ -279,75 +279,74 @@ def letras_para_indices(vetor_letras):
 def transformar_rotulos(labels):
     return [letras_para_indices(label) for label in labels]
 
-# Obter número de camadas escondidas e épocas
-num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
-num_epocas = int(input("Digite o número de épocas: "))
-tx_aprendizado = float(input("Digite a taxa de treinamento: "))
-parada_antecipada_str = input("Parada antecipada? true or false ")
-# Converter a entrada para um valor booleano
-if parada_antecipada_str == "true":
-    parada_antecipada = True
-else:
-    parada_antecipada = False
-if parada_antecipada:
-    pat = int(input("Patience? "))
-else:
-    pat=20
-validacao_cruzada_str = input("Validação Cruzada? true or false ")
-if validacao_cruzada_str == "true":
-    validacao_cruzada = True
-else:
-    validacao_cruzada = False
-if validacao_cruzada:
-    num_vezes = int(input("Num Folds: "))
-else:
-    num_vezes = 5
+if __name__ == "__main__":
+    # Obter número de camadas escondidas e épocas
+    num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
+    num_epocas = int(input("Digite o número de épocas: "))
+    tx_aprendizado = float(input("Digite a taxa de treinamento: "))
+    parada_antecipada_str = input("Parada antecipada? true or false ")
+    # Converter a entrada para um valor booleano
+    if parada_antecipada_str == "true":
+        parada_antecipada = True
+    else:
+        parada_antecipada = False
+    if parada_antecipada:
+        pat = int(input("Patience? "))
+    else:
+        pat=20
+    validacao_cruzada_str = input("Validação Cruzada? true or false ")
+    if validacao_cruzada_str == "true":
+        validacao_cruzada = True
+    else:
+        validacao_cruzada = False
+    if validacao_cruzada:
+        num_vezes = int(input("Num Folds: "))
+    else:
+        num_vezes = 5
 
-# Carregar dados de treinamento
-#X_train, y_train = load_data('X.txt', 'Y_letra.txt')
-X_train, y_train = load_data('X26.txt', 'Y26.txt')
+    # Carregar dados de treinamento
+    #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
+    X_train, y_train = load_data('X26.txt', 'Y26.txt')
 
-# Verificar se o número de amostras de entrada é igual ao número de rótulos
-if len(X_train) != len(y_train):
-    print("Erro: O número de amostras de entrada não é igual ao número de rótulos.")
-    exit()
+    # Verificar se o número de amostras de entrada é igual ao número de rótulos
+    if len(X_train) != len(y_train):
+        print("Erro: O número de amostras de entrada não é igual ao número de rótulos.")
+        exit()
 
-# Transformar os rótulos de letras em códigos binários
-y_encoded = one_hot_encode(y_train)
-
-
-# Carregar os pesos treinados
-mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
+    # Transformar os rótulos de letras em códigos binários
+    y_encoded = one_hot_encode(y_train)
 
 
-# Treinamento da MLP com Hyperparametros
-mlp.train(X_train, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
-
-# Salvar Pesos em csv
-mlp.save_weights()
+    # Carregar os pesos treinados
+    mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 
 
-i = 0
-y_pred = []
-classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] # Exemplo de classes (substitua pelas suas)
-num_classes = len(classes)
-y_true = letras_para_indices(y_train)
+    # Treinamento da MLP com Hyperparametros
+    mlp.train(X_train, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
-for item in X_train:
-    print("Valor em binario",item)
-    previsao = mlp.predict(item)
-    letra_prevista_index = np.argmax(previsao)
-    letra_prevista = chr(ord('a') + letra_prevista_index)
-    print("Letra Prevista:", letra_prevista)
-    print("Letra Real", y_train[i])
-    y_pred.append(letra_prevista_index)
-    i = i + 1
+    # Salvar Pesos em csv
+    mlp.save_weights()
 
 
-print(len(X_train))
-print(len(y_true))
+    i = 0
+    y_pred = []
+    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] # Exemplo de classes (substitua pelas suas)
+    num_classes = len(classes)
+    y_true = letras_para_indices(y_train)
 
-confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
-mlp.plot_confusion_matrix(confusion_matrix, classes)
+    for item in X_train:
+        print("Valor em binario",item)
+        previsao = mlp.predict(item)
+        letra_prevista_index = np.argmax(previsao)
+        letra_prevista = chr(ord('a') + letra_prevista_index)
+        print("Letra Prevista:", letra_prevista)
+        print("Letra Real", y_train[i])
+        y_pred.append(letra_prevista_index)
+        i = i + 1
 
 
+    print(len(X_train))
+    print(len(y_true))
+
+    confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
+    mlp.plot_confusion_matrix(confusion_matrix, classes)
