@@ -184,7 +184,7 @@ class MLP:
 
         plt.show()
 
-    def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs=1000, learning_rate=0.1):
+    def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
         folds_X, folds_y = split_data(X, y, num_folds)
         for i in range(num_folds):
             # Separa os dados em conjunto de treinamento e validação
