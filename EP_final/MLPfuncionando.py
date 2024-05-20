@@ -1,6 +1,5 @@
 import numpy as np
 import csv
-from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 
@@ -22,6 +21,8 @@ class MLP:
 
         self.Valores_MSE = []
         self.épocas = []
+        self.accuracies = []
+        self.cont_fold = []
         
         # Carregar os pesos salvos se o arquivo existir
         #self.load_weights()
@@ -75,7 +76,10 @@ class MLP:
                         if patience_count >= patience:
                             print(f"Early stopping at epoch {epoch + 1}")
                             break
-
+        
+        self.gráfico_MSE(self.épocas, self.Valores_MSE)
+        self.Valores_MSE.clear()
+        self.épocas.clear()
         return mse
 
     def predict(self, X):
@@ -182,7 +186,6 @@ class MLP:
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs=1000, learning_rate=0.1):
         folds_X, folds_y = split_data(X, y, num_folds)
-        accuracies = []
         for i in range(num_folds):
             # Separa os dados em conjunto de treinamento e validação
             X_train = np.concatenate([folds_X[j] for j in range(num_folds) if j != i])
@@ -197,12 +200,30 @@ class MLP:
             predictions = self.predict(X_val)
             true_labels = np.argmax(y_val, axis=1)
             accuracy = np.mean(np.argmax(predictions, axis=1) == true_labels)
-            accuracies.append(accuracy)
+            self.accuracies.append(accuracy)
+            self.cont_fold.append(i+1)
 
             print(f"Fold {i + 1} Accuracy: {accuracy:.4f}")
 
-            print (f"Acurácia do modelo: {np.mean(accuracies)}")
-        return accuracies
+            print (f"Acurácia do modelo: {np.mean(self.accuracies)}")
+        
+        self.gráfico_acc(self.cont_fold, self.accuracies)
+        return self.accuracies
+    
+    def gráfico_MSE(self, x, y):
+        plt.plot(x, y, marker='o')
+        plt.title('Gráfico de MSE em ralação às épocas')
+        plt.xlabel('Épocas')
+        plt.ylabel('Valor do MSE')
+        plt.show()
+
+    def gráfico_acc(self, x , y):
+        plt.plot(x, y, marker='o')
+        plt.title('Gráfico de acurácia em relação a cada fold')
+        plt.xlabel('Contagem dos fold')
+        plt.ylabel('Acurácia')
+        plt.show()
+
 
 
 # Função para transformar os rótulos de letras em códigos binários
@@ -284,16 +305,6 @@ def letras_para_indices(vetor_letras):
 def transformar_rotulos(labels):
     return [letras_para_indices(label) for label in labels]
 
-def plot_gráfico(listax, listay):
-
-        plt.plot(listax, listay, marker='o')
-
-        plt.title('Gráfico de MSE em ralação às épocas')
-        plt.xlabel('Valor do MSE')
-        plt.ylabel('Épocas`')
-
-        plt.show()
-
 if __name__ == "__main__":
     # Obter número de camadas escondidas e épocas
     num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
@@ -367,9 +378,5 @@ if __name__ == "__main__":
     print(len(X_train))
     print(len(y_true))
 
-    y = mlp.Valores_MSE
-    x = mlp.épocas
-
-    plot_gráfico(x,y)
     confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
     mlp.plot_confusion_matrix(confusion_matrix, classes)
