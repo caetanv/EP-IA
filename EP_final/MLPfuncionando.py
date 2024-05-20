@@ -40,7 +40,7 @@ class MLP:
         return x * (1 - x)
 
 
-    # Treinamento com Parada antecipada e cross validation
+    # Função de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
     def train(self, X, y, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
@@ -210,13 +210,15 @@ class MLP:
         self.gráfico_acc(self.cont_fold, self.accuracies)
         return self.accuracies
     
+    # Função para criar gráfico de MSE em função das épocas
     def gráfico_MSE(self, x, y):
         plt.plot(x, y, marker='o')
-        plt.title('Gráfico de MSE em ralação às épocas')
+        plt.title('Gráfico de MSE em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Valor do MSE')
         plt.show()
 
+    # Função para criar gráfico de acurácia em função dos 'fold'
     def gráfico_acc(self, x , y):
         plt.plot(x, y, marker='o')
         plt.title('Gráfico de acurácia em relação a cada fold')
@@ -306,24 +308,24 @@ def transformar_rotulos(labels):
     return [letras_para_indices(label) for label in labels]
 
 if __name__ == "__main__":
-    # Obter número de camadas escondidas e épocas
+    # Entrada do usuário para obter número de camadas escondidas, épocas, taxa de treinamento, parada antecipada e validação cruzada
     num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
     num_epocas = int(input("Digite o número de épocas: "))
     tx_aprendizado = float(input("Digite a taxa de treinamento: "))
     parada_antecipada_str = input("Parada antecipada? true or false ")
-
     # Converter a entrada para um valor booleano
     if parada_antecipada_str == "true":
         parada_antecipada = True
     else:
         parada_antecipada = False
 
-    if parada_antecipada:
+    if parada_antecipada: 
         pat = int(input("Patience? "))
     else:
         pat=20
 
     validacao_cruzada_str = input("Validação Cruzada? true or false ")
+    # Converter a entrada para um valor booleano
     if validacao_cruzada_str == "true":
         validacao_cruzada = True
     else:
@@ -364,6 +366,7 @@ if __name__ == "__main__":
     num_classes = len(classes)
     y_true = letras_para_indices(y_train)
 
+    # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
     for item in X_train:
         print("Valor em binario",item)
         previsao = mlp.predict(item)
@@ -378,5 +381,6 @@ if __name__ == "__main__":
     print(len(X_train))
     print(len(y_true))
 
+    # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
     mlp.plot_confusion_matrix(confusion_matrix, classes)
