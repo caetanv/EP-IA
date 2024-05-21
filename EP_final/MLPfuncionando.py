@@ -84,14 +84,14 @@ class MLP:
 
     def predict(self, X):
             
-            hidden_input = np.dot(X, self.weights_input_hidden)
-            hidden_output = self.sigmoid(hidden_input)
+        hidden_input = np.dot(X, self.weights_input_hidden)
+        hidden_output = self.sigmoid(hidden_input)
 
-            #Camada de saída da rede neural.
-            output_input = np.dot(hidden_output, self.weights_hidden_output)
-            output = self.sigmoid(output_input)
+        #Camada de saída da rede neural.
+        output_input = np.dot(hidden_output, self.weights_hidden_output)
+        output = self.sigmoid(output_input)
 
-            return output
+        return output
 
     def save_weights(self):
         with open(self.weights_filename, 'w', newline='') as csvfile:
@@ -309,7 +309,7 @@ def transformar_rotulos(labels):
 
 if __name__ == "__main__":
     # Entrada do usuário para obter número de camadas escondidas, épocas, taxa de treinamento, parada antecipada e validação cruzada
-    num_camadas_escondidas = int(input("Digite o número de camadas escondidas: "))
+    num_camadas_escondidas = int(input("Digite o número de neurônios na camadas escondidas: "))
     num_epocas = int(input("Digite o número de épocas: "))
     tx_aprendizado = float(input("Digite a taxa de treinamento: "))
     parada_antecipada_str = input("Parada antecipada? true or false ")
@@ -338,6 +338,7 @@ if __name__ == "__main__":
 
     # Carregar dados de treinamento
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
+    # X_train, y_train = load_data('X_treinamento.txt', 'Y_treinamento.txt')
     X_train, y_train = load_data('X26.txt', 'Y26.txt')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
@@ -377,9 +378,10 @@ if __name__ == "__main__":
         y_pred.append(letra_prevista_index)
         i = i + 1
 
-
     print(len(X_train))
     print(len(y_true))
+    print(num_camadas_escondidas)
+    print(num_epocas)
 
     # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
