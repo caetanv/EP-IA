@@ -25,6 +25,8 @@ class MLP:
         self.accuracies_train = []
         self.accuracies_val = []
         self.cont_fold = []
+
+        
         
         # Carregar os pesos salvos se o arquivo existir
         #self.load_weights()
@@ -46,14 +48,13 @@ class MLP:
     def train(self, X, y, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
-            for i in range(num_folds):
-                self.gráfico_MSE(self.epocas[i], self.valores_MSE_train[i], self.epocas[i], self.valores_MSE_val[i])
-                self.gráfico_acc(self.epocas[i], self.accuracies_train[i], self.epocas[i], self.accuracies_val[i])
 
         else:
             self._train_single_fold(X, y, X, y, epochs, learning_rate, early_stopping, patience)
-            self.gráfico_MSE(self.epocas[0], self.valores_MSE_train[0], self.epocas[0], self.valores_MSE_val[0])
-            self.gráfico_acc(self.epocas[0], self.accuracies_train[0], self.epocas[0], self.accuracies_val[0])
+            self.gráfico_MSE(self.epocas, self.valores_MSE_train, self.epocas, self.valores_MSE_val)
+            self.gráfico_acc(self.epocas, self.accuracies_train, self.epocas, self.accuracies_val)
+
+        print (f'Acurácia do modelo: {(np.max(self.accuracies_val) * 100):.1f}%')
 
         
 
@@ -79,27 +80,27 @@ class MLP:
                 #Calcula o erro para conjunto de teste
                 val_pred_train = self.predict(X_train)
                 mse_train = np.mean((y_val - val_pred_train) ** 2)
-                valores_MSE_train.append(mse_train)
+                self.valores_MSE_train.append(mse_train)
 
                 #Calcula o erro para conjunto de validação
                 val_pred_val = self.predict(X_val)
                 mse_val = np.mean((y_val - val_pred_val) ** 2)
-                valores_MSE_val.append(mse_val)
+                self.valores_MSE_val.append(mse_val)
 
                 # Avalia o modelo no conjunto de treino
                 predictions_train = self.predict(X_train)
                 true_labels_train = np.argmax(y_train, axis=1)
                 accuracy_train = np.mean(np.argmax(predictions_train, axis=1) == true_labels_train)
-                accuracies_train.append(accuracy_train)
+                self.accuracies_train.append(accuracy_train)
 
                 # Avalia o modelo no conjunto de validação
                 predictions_val = self.predict(X_val)
                 true_labels_val = np.argmax(y_val, axis=1)
                 accuracy_val = np.mean(np.argmax(predictions_val, axis=1) == true_labels_val)
-                accuracies_val.append(accuracy_val)
+                self.accuracies_val.append(accuracy_val)
 
                 #Guarda o valor das épocas correspondentes
-                epocas.append(epoch)
+                self.epocas.append(epoch)
                 print(f"Época {epoch + 1}: MSE Treino: {mse_train:.4f}, MSE Validação: {mse_val:.4f}, Acurácia de Treino: {accuracy_train:.4f}, Acurácia de Validação: {accuracy_val:.4f}")
 
                 # Early stoppingot(self.sigmoid(output).T, ou
@@ -112,12 +113,13 @@ class MLP:
                         if patience_count >= patience:
                             print(f"Early stopping at epoch {epoch + 1}")
                             break
-
+        '''
         self.valores_MSE_train.append(valores_MSE_train)
         self.valores_MSE_val.append(valores_MSE_val)
         self.accuracies_train.append(accuracies_train)
         self.accuracies_val.append(accuracies_val)
         self.epocas.append(epocas)
+        '''
 
         return
 
@@ -225,6 +227,7 @@ class MLP:
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
         folds_X, folds_y = split_data(X, y, num_folds)
+        mlps = []
         for i in range(num_folds):
             # Separa os dados em conjunto de treinamento e validação
             X_train = np.concatenate([folds_X[j] for j in range(num_folds) if j != i])
@@ -233,17 +236,28 @@ class MLP:
             y_val = folds_y[i]
 
             # Treina o modelo
-            self.train(X_train, y_train, epochs=epochs, learning_rate=learning_rate)
-
+            mlp = MLP(self.input_size, self.hidden_size, self.output_size, self.weights_filename)
+            mlp.train(X_train, y_train, epochs=epochs, learning_rate=learning_rate, use_cross_validation=False)
+            mlps.append(mlp)
+                
             
             self.cont_fold.append(i+1)
 
-            #print(f"Fold {i + 1} Accuracy: {accuracy:.4f}")
+            print(f"Fim do Fold {i + 1}")
 
-            #print (f"Acurácia do modelo: {np.mean(self.accuracies)}")
+        max = 0 
+        for m in range(len(mlps)):
+            if np.max(mlps[m].accuracies_val) > max:
+                max = np.max(mlps[m].accuracies_val)
+                choose = m
+
+        self.weights_input_hidden = mlps[m].weights_input_hidden
+        self.bias_hidden = mlps[m].bias_hidden
+        self.weights_hidden_output = mlps[m].weights_hidden_output
+        self.bias_output = mlps[m].bias_output
+        self.accuracies_val = mlps[m].accuracies_val
         
         return
-        #return self.accuracies
     
     # Função para criar gráfico de MSE em função das épocas
     def gráfico_MSE(self, x_train, y_train, x_val, y_val):
