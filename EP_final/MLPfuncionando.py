@@ -19,9 +19,11 @@ class MLP:
 
         self.weights_filename = weights_filename
 
-        self.Valores_MSE = []
-        self.épocas = []
-        self.accuracies = []
+        self.valores_MSE_train = []
+        self.valores_MSE_val = []
+        self.epocas = []
+        self.accuracies_train = []
+        self.accuracies_val = []
         self.cont_fold = []
         
         # Carregar os pesos salvos se o arquivo existir
@@ -44,43 +46,80 @@ class MLP:
     def train(self, X, y, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
+            for i in range(num_folds):
+                self.gráfico_MSE(self.epocas[i], self.valores_MSE_train[i], self.epocas[i], self.valores_MSE_val[i])
+                self.gráfico_acc(self.epocas[i], self.accuracies_train[i], self.epocas[i], self.accuracies_val[i])
+
         else:
             self._train_single_fold(X, y, X, y, epochs, learning_rate, early_stopping, patience)
+            self.gráfico_MSE(self.epocas[0], self.valores_MSE_train[0], self.epocas[0], self.valores_MSE_val[0])
+            self.gráfico_acc(self.epocas[0], self.accuracies_train[0], self.epocas[0], self.accuracies_val[0])
+
+        
 
     def _train_single_fold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
         best_mse = float('inf')
         patience_count = 0
+        valores_MSE_train = []
+        valores_MSE_val = []
+        accuracies_train = []
+        accuracies_val = []
+        epocas = []
 
         for epoch in range(epochs):
 
             output, hidden_output = self.forward_pass(X_train)
             
+            
             # Backpropagation
             self.back_propagation(X_train,y_train,learning_rate,output,hidden_output)
             
-            # Calculate MSE on validation set
-            if (epoch + 1) % 100 == 0:
-                val_pred = self.predict(X_val)
-                mse = np.mean((y_val - val_pred) ** 2)
-                self.Valores_MSE.append(mse)
-                self.épocas.append(epoch)
-                print(f"Epoch {epoch + 1}, Validation MSE: {mse:.4f}")
+            # Define o intervalo em que erro e acurácia são definidos
+            if (epoch + 1) % 50 == 0:
+                #Calcula o erro para conjunto de teste
+                val_pred_train = self.predict(X_train)
+                mse_train = np.mean((y_val - val_pred_train) ** 2)
+                valores_MSE_train.append(mse_train)
+
+                #Calcula o erro para conjunto de validação
+                val_pred_val = self.predict(X_val)
+                mse_val = np.mean((y_val - val_pred_val) ** 2)
+                valores_MSE_val.append(mse_val)
+
+                # Avalia o modelo no conjunto de treino
+                predictions_train = self.predict(X_train)
+                true_labels_train = np.argmax(y_train, axis=1)
+                accuracy_train = np.mean(np.argmax(predictions_train, axis=1) == true_labels_train)
+                accuracies_train.append(accuracy_train)
+
+                # Avalia o modelo no conjunto de validação
+                predictions_val = self.predict(X_val)
+                true_labels_val = np.argmax(y_val, axis=1)
+                accuracy_val = np.mean(np.argmax(predictions_val, axis=1) == true_labels_val)
+                accuracies_val.append(accuracy_val)
+
+                #Guarda o valor das épocas correspondentes
+                epocas.append(epoch)
+                print(f"Época {epoch + 1}: MSE Treino: {mse_train:.4f}, MSE Validação: {mse_val:.4f}, Acurácia de Treino: {accuracy_train:.4f}, Acurácia de Validação: {accuracy_val:.4f}")
 
                 # Early stoppingot(self.sigmoid(output).T, ou
                 if early_stopping:
-                    if mse < best_mse:
-                        best_mse = mse
+                    if mse_val < best_mse:
+                        best_mse = mse_val
                         patience_count = 0
                     else:
                         patience_count += 1
                         if patience_count >= patience:
                             print(f"Early stopping at epoch {epoch + 1}")
                             break
-        
-        self.gráfico_MSE(self.épocas, self.Valores_MSE)
-        self.Valores_MSE.clear()
-        self.épocas.clear()
-        return mse
+
+        self.valores_MSE_train.append(valores_MSE_train)
+        self.valores_MSE_val.append(valores_MSE_val)
+        self.accuracies_train.append(accuracies_train)
+        self.accuracies_val.append(accuracies_val)
+        self.epocas.append(epocas)
+
+        return
 
     def predict(self, X):
             
@@ -196,33 +235,31 @@ class MLP:
             # Treina o modelo
             self.train(X_train, y_train, epochs=epochs, learning_rate=learning_rate)
 
-            # Avalia o modelo no conjunto de validação
-            predictions = self.predict(X_val)
-            true_labels = np.argmax(y_val, axis=1)
-            accuracy = np.mean(np.argmax(predictions, axis=1) == true_labels)
-            self.accuracies.append(accuracy)
+            
             self.cont_fold.append(i+1)
 
-            print(f"Fold {i + 1} Accuracy: {accuracy:.4f}")
+            #print(f"Fold {i + 1} Accuracy: {accuracy:.4f}")
 
-            print (f"Acurácia do modelo: {np.mean(self.accuracies)}")
+            #print (f"Acurácia do modelo: {np.mean(self.accuracies)}")
         
-        self.gráfico_acc(self.cont_fold, self.accuracies)
-        return self.accuracies
+        return
+        #return self.accuracies
     
     # Função para criar gráfico de MSE em função das épocas
-    def gráfico_MSE(self, x, y):
-        plt.plot(x, y, marker='o')
+    def gráfico_MSE(self, x_train, y_train, x_val, y_val):
+        plt.plot(x_train, y_train, color='purple', label='Treino')
+        plt.plot(x_val, y_val, color='orange', label='Validação')
         plt.title('Gráfico de MSE em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Valor do MSE')
         plt.show()
 
     # Função para criar gráfico de acurácia em função dos 'fold'
-    def gráfico_acc(self, x , y):
-        plt.plot(x, y, marker='o')
-        plt.title('Gráfico de acurácia em relação a cada fold')
-        plt.xlabel('Contagem dos fold')
+    def gráfico_acc(self, x_train , y_train, x_val, y_val):
+        plt.plot(x_train, y_train, color='purple', label='Treino')
+        plt.plot(x_val, y_val, color='orange', label='Validação')
+        plt.title('Gráfico de acurácia em relação às épocas')
+        plt.xlabel('Épocas')
         plt.ylabel('Acurácia')
         plt.show()
 
@@ -338,7 +375,9 @@ if __name__ == "__main__":
 
     # Carregar dados de treinamento
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
-    X_train, y_train = load_data('X26.txt', 'Y26.txt')
+    os.getcwd()
+    X_train, y_train = load_data('X_bruto.txt', 'Y_bruto.txt')
+    #X_train, y_train = load_data('')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
     if len(X_train) != len(y_train):
@@ -368,12 +407,12 @@ if __name__ == "__main__":
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
     for item in X_train:
-        print("Valor em binario",item)
+        #print("Valor em binario",item)
         previsao = mlp.predict(item)
         letra_prevista_index = np.argmax(previsao)
         letra_prevista = chr(ord('a') + letra_prevista_index)
-        print("Letra Prevista:", letra_prevista)
-        print("Letra Real", y_train[i])
+        #print("Letra Prevista:", letra_prevista)
+        #print("Letra Real", y_train[i])
         y_pred.append(letra_prevista_index)
         i = i + 1
 
