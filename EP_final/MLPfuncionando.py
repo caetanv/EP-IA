@@ -42,15 +42,14 @@ class MLP:
     # Função que calcula a derivada da sigmoide
     def sigmoid_derivative(self, x):
         return x * (1 - x)
-
-
+    
     # Função de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
-    def train(self, X, y, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
+    def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
 
         else:
-            self._train_single_fold(X, y, X, y, epochs, learning_rate, early_stopping, patience)
+            self._train_single_fold(X, y, X_val, y_val, epochs, learning_rate, early_stopping, patience)
             self.gráfico_MSE(self.epocas, self.valores_MSE_train, self.epocas, self.valores_MSE_val)
             self.gráfico_acc(self.epocas, self.accuracies_train, self.epocas, self.accuracies_val)
 
@@ -79,7 +78,7 @@ class MLP:
             if (epoch + 1) % 50 == 0:
                 #Calcula o erro para conjunto de teste
                 val_pred_train = self.predict(X_train)
-                mse_train = np.mean((y_val - val_pred_train) ** 2)
+                mse_train = np.mean((y_train - val_pred_train) ** 2)
                 self.valores_MSE_train.append(mse_train)
 
                 #Calcula o erro para conjunto de validação
@@ -237,7 +236,7 @@ class MLP:
 
             # Treina o modelo
             mlp = MLP(self.input_size, self.hidden_size, self.output_size, self.weights_filename)
-            mlp.train(X_train, y_train, epochs=epochs, learning_rate=learning_rate, use_cross_validation=False)
+            mlp.train(X_train, y_train, X_val, y_val, epochs=epochs, learning_rate=learning_rate, use_cross_validation=False)
             mlps.append(mlp)
                 
             
@@ -249,13 +248,13 @@ class MLP:
         for m in range(len(mlps)):
             if np.max(mlps[m].accuracies_val) > max:
                 max = np.max(mlps[m].accuracies_val)
-                choose = m
+                z = m
 
-        self.weights_input_hidden = mlps[m].weights_input_hidden
-        self.bias_hidden = mlps[m].bias_hidden
-        self.weights_hidden_output = mlps[m].weights_hidden_output
-        self.bias_output = mlps[m].bias_output
-        self.accuracies_val = mlps[m].accuracies_val
+        self.weights_input_hidden = mlps[z].weights_input_hidden
+        self.bias_hidden = mlps[z].bias_hidden
+        self.weights_hidden_output = mlps[z].weights_hidden_output
+        self.bias_output = mlps[z].bias_output
+        self.accuracies_val = mlps[z].accuracies_val
         
         return
     
@@ -391,6 +390,7 @@ if __name__ == "__main__":
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
     os.getcwd()
     X_train, y_train = load_data('X_bruto.txt', 'Y_bruto.txt')
+    X_val, y_val = load_data('X_validação.txt', 'Y_validação.txt')
     #X_train, y_train = load_data('')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
@@ -400,14 +400,14 @@ if __name__ == "__main__":
 
     # Transformar os rótulos de letras em códigos binários
     y_encoded = one_hot_encode(y_train)
+    y_val_encoded = one_hot_encode(y_val)
 
 
     # Carregar os pesos treinados
     mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 
-
     # Treinamento da MLP com Hyperparametros
-    mlp.train(X_train, y_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
+    mlp.train(X_train, y_encoded, X_val, y_val_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
     # Salvar Pesos em csv
     mlp.save_weights()
@@ -417,10 +417,10 @@ if __name__ == "__main__":
     y_pred = []
     classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] # Exemplo de classes (substitua pelas suas)
     num_classes = len(classes)
-    y_true = letras_para_indices(y_train)
+    y_true = letras_para_indices(y_val)
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
-    for item in X_train:
+    for item in X_val:
         #print("Valor em binario",item)
         previsao = mlp.predict(item)
         letra_prevista_index = np.argmax(previsao)
