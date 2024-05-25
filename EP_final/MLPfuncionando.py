@@ -49,8 +49,6 @@ class MLP:
 
         else:
             self._train_single_fold(X, y, X_val, y_val, epochs, learning_rate, early_stopping, patience)
-            self.gráfico_MSE(self.epocas, self.valores_MSE_train, self.epocas, self.valores_MSE_val)
-            self.gráfico_acc(self.epocas, self.accuracies_train, self.epocas, self.accuracies_val)
 
         print (f'Acurácia do modelo: {(np.max(self.accuracies_val) * 100):.1f}%')
 
@@ -118,6 +116,9 @@ class MLP:
         self.accuracies_val.append(accuracies_val)
         self.epocas.append(epocas)
         '''
+
+        self.gráfico_MSE(self.epocas, self.valores_MSE_train, self.epocas, self.valores_MSE_val)
+        self.gráfico_acc(self.epocas, self.accuracies_train, self.epocas, self.accuracies_val)
 
         return
 
@@ -258,7 +259,7 @@ class MLP:
             mlps.append(mlp)
                 
             
-            self.cont_fold = i+1
+            self.cont_fold = i + 1
 
             print(f"Fim do Fold {i + 1}")
 
@@ -285,10 +286,10 @@ class MLP:
         plt.ylabel('Valor do MSE')
 
         # Obter a data atual
-        current_date = datetime.now().strftime('%Y-%m-%d_%H-%M')
+        current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         # Nome do arquivo com a data atual
-        filename = f'grafico_MSE_{self.cont_fold}_{current_date}.png'
+        filename = f'grafico_MSE_{current_date}.png'
         
         # Salvar o gráfico
         plt.savefig(filename)
@@ -305,10 +306,10 @@ class MLP:
         plt.ylabel('Acurácia')
 
         # Obter a data atual
-        current_date = datetime.now().strftime('%Y-%m-%d')
+        current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         # Nome do arquivo com a data atual
-        filename = f'grafico_ACC_{self.cont_fold}_{current_date}.png'
+        filename = f'grafico_ACC_{current_date}.png'
 
         # Salvar o gráfico
         plt.savefig(filename)
