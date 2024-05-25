@@ -2,8 +2,7 @@ import numpy as np
 import csv
 import os
 import matplotlib.pyplot as plt
-
-# https://github.com/EdgarLiraa/IA-Multilayer-Perceptron/blob/main/rede.py
+from datetime import datetime
 
 class MLP:
     def __init__(self, input_size, hidden_size, output_size, weights_filename='weights.csv'):
@@ -24,7 +23,7 @@ class MLP:
         self.epocas = []
         self.accuracies_train = []
         self.accuracies_val = []
-        self.cont_fold = []
+        self.cont_fold = 0
 
         
         
@@ -75,7 +74,7 @@ class MLP:
             self.back_propagation(X_train,y_train,learning_rate,output,hidden_output)
             
             # Define o intervalo em que erro e acurácia são definidos
-            if (epoch + 1) % 50 == 0:
+            if (epoch + 1) % 100 == 0:
                 #Calcula o erro para conjunto de teste
                 val_pred_train = self.predict(X_train)
                 mse_train = np.mean((y_train - val_pred_train) ** 2)
@@ -132,6 +131,9 @@ class MLP:
         output = self.sigmoid(output_input)
 
         return output
+
+    def prever_letra(self, item):
+        return chr(ord('a') + np.argmax(mlp.predict(item)))
 
     def save_weights(self):
         with open(self.weights_filename, 'w', newline='') as csvfile:
@@ -200,6 +202,22 @@ class MLP:
             self.bias_hidden += np.sum(hidden_delta, axis=0) * learning_rate
 
 
+    def split_data(self, X, y, num_folds):
+        fold_size = len(X) // num_folds
+        indices = np.arange(len(X))
+        np.random.shuffle(indices)
+        X_shuffled = X[indices]
+        y_shuffled = y[indices]
+        X_folds = []
+        y_folds = []
+        for i in range(num_folds):
+            start = i * fold_size
+            end = (i + 1) * fold_size if i < num_folds - 1 else len(X)
+            X_folds.append(X_shuffled[start:end])
+            y_folds.append(y_shuffled[start:end])
+        return X_folds, y_folds
+
+
     def calculate_confusion_matrix(self, y_true, y_pred, num_classes):
         confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
         for true_label, pred_label in zip(y_true, y_pred):
@@ -225,7 +243,7 @@ class MLP:
         plt.show()
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
-        folds_X, folds_y = split_data(X, y, num_folds)
+        folds_X, folds_y = self.split_data(X, y, num_folds)
         mlps = []
         for i in range(num_folds):
             # Separa os dados em conjunto de treinamento e validação
@@ -240,7 +258,7 @@ class MLP:
             mlps.append(mlp)
                 
             
-            self.cont_fold.append(i+1)
+            self.cont_fold = i+1
 
             print(f"Fim do Fold {i + 1}")
 
@@ -265,7 +283,18 @@ class MLP:
         plt.title('Gráfico de MSE em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Valor do MSE')
+
+        # Obter a data atual
+        current_date = datetime.now().strftime('%Y-%m-%d_%H-%M')
+
+        # Nome do arquivo com a data atual
+        filename = f'grafico_MSE_{self.cont_fold}_{current_date}.png'
+        
+        # Salvar o gráfico
+        plt.savefig(filename)
         plt.show()
+
+
 
     # Função para criar gráfico de acurácia em função dos 'fold'
     def gráfico_acc(self, x_train , y_train, x_val, y_val):
@@ -274,123 +303,136 @@ class MLP:
         plt.title('Gráfico de acurácia em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Acurácia')
+
+        # Obter a data atual
+        current_date = datetime.now().strftime('%Y-%m-%d')
+
+        # Nome do arquivo com a data atual
+        filename = f'grafico_ACC_{self.cont_fold}_{current_date}.png'
+
+        # Salvar o gráfico
+        plt.savefig(filename)
         plt.show()
 
 
+class Util_Functions:
+    def __init__(self):
+        pass
 
-# Função para transformar os rótulos de letras em códigos binários
-# Procedimento de cálculo da resposta da rede em termos de reconhecimento do caractere
-def one_hot_encode(labels):
-    unique_labels = np.unique(labels)
-    num_labels = len(unique_labels)
-    encoding = np.zeros((len(labels), num_labels))
-    for i, label in enumerate(labels):
-        index = np.where(unique_labels == label)[0][0]
-        encoding[i, index] = 1
-    return encoding
+    # Função para transformar os rótulos de letras em códigos binários
+    # Procedimento de cálculo da resposta da rede em termos de reconhecimento do caractere
+    def one_hot_encode(self, labels):
+        unique_labels = np.unique(labels)
+        num_labels = len(unique_labels)
+        encoding = np.zeros((len(labels), num_labels))
+        for i, label in enumerate(labels):
+            index = np.where(unique_labels == label)[0][0]
+            encoding[i, index] = 1
+        return encoding
 
-def load_data(file_x, file_y):
-    return np.array(ler_dados_entrada(file_x)), np.array(ler_rotulos_letras(file_y))
+    def load_data(self, file_x, file_y):
+        return np.array(self.ler_dados_entrada(file_x)), np.array(self.ler_rotulos_letras(file_y))
 
-# Leitura dos dados de entrada e remoção de valores vazios
-# Camada de entrada da rede neural.
-def ler_dados_entrada(nome_arquivo):
-    dados = []
-    atual = os.getcwd()
-    os.chdir('caracteres-completo')
-    with open(nome_arquivo, 'r') as arquivo:
-        linhas = arquivo.readlines()
-        for linha in linhas:
-            valores = linha.strip().split(',')
-            valores = [int(valor) for valor in valores if valor.strip()]  # Remover valores vazios
-            if valores:  # Se a linha não estiver vazia após a remoção dos valores vazios
-                dados.append(valores)
-    
-    os.chdir(atual)
-    return np.array(dados)
-
-
-# Leitura dos rótulos de letras
-def ler_rotulos_letras(nome_arquivo):
-    atual = os.getcwd()
-    os.chdir('caracteres-completo')
-    with open(nome_arquivo, 'r') as arquivo:
-        rotulos = arquivo.readlines()
-    os.chdir(atual)
-    return [rotulo.strip() for rotulo in rotulos]
-
-def split_data(X, y, num_folds):
-    fold_size = len(X) // num_folds
-    indices = np.arange(len(X))
-    np.random.shuffle(indices)
-    X_shuffled = X[indices]
-    y_shuffled = y[indices]
-    X_folds = []
-    y_folds = []
-    for i in range(num_folds):
-        start = i * fold_size
-        end = (i + 1) * fold_size if i < num_folds - 1 else len(X)
-        X_folds.append(X_shuffled[start:end])
-        y_folds.append(y_shuffled[start:end])
-    return X_folds, y_folds
+    # Leitura dos dados de entrada e remoção de valores vazios
+    # Camada de entrada da rede neural.
+    def ler_dados_entrada(self, nome_arquivo):
+        dados = []
+        atual = os.getcwd()
+        os.chdir('caracteres-completo')
+        with open(nome_arquivo, 'r') as arquivo:
+            linhas = arquivo.readlines()
+            for linha in linhas:
+                valores = linha.strip().split(',')
+                valores = [int(valor) for valor in valores if valor.strip()]  # Remover valores vazios
+                if valores:  # Se a linha não estiver vazia após a remoção dos valores vazios
+                    dados.append(valores)
+        
+        os.chdir(atual)
+        return np.array(dados)
 
 
-def letra_para_indice(letra):
-    if 'A' <= letra <= 'Z':
-        return ord(letra) - ord('A')
-    elif 'a' <= letra <= 'z':
-        return ord(letra) - ord('a')
-    else:
-        raise ValueError("Caractere fornecido não é uma letra do alfabeto.")
+    # Leitura dos rótulos de letras
+    def ler_rotulos_letras(self, nome_arquivo):
+        atual = os.getcwd()
+        os.chdir('caracteres-completo')
+        with open(nome_arquivo, 'r') as arquivo:
+            rotulos = arquivo.readlines()
+        os.chdir(atual)
+        return [rotulo.strip() for rotulo in rotulos]
 
 
-def letras_para_indices(vetor_letras):
-    indices = []
-    for letra in vetor_letras:
-        if 'A' <= letra <= 'Z' or 'a' <= letra <= 'z':
-            indice = letra_para_indice(letra)
-            indices.append(indice)
+    def letra_para_indice(self, letra):
+        if 'A' <= letra <= 'Z':
+            return ord(letra) - ord('A')
+        elif 'a' <= letra <= 'z':
+            return ord(letra) - ord('a')
         else:
-            raise ValueError(f"Caractere '{letra}' não é uma letra do alfabeto.")
-    return indices
+            raise ValueError("Caractere fornecido não é uma letra do alfabeto.")
 
-def transformar_rotulos(labels):
-    return [letras_para_indices(label) for label in labels]
 
-if __name__ == "__main__":
+    def letras_para_indices(self, vetor_letras):
+        indices = []
+        for letra in vetor_letras:
+            if 'A' <= letra <= 'Z' or 'a' <= letra <= 'z':
+                indice = self.letra_para_indice(letra)
+                indices.append(indice)
+            else:
+                raise ValueError(f"Caractere '{letra}' não é uma letra do alfabeto.")
+        return indices
+
+    def transformar_rotulos(self, labels):
+        return [self.letras_para_indices(label) for label in labels]
+class Programa:
+
+  def __init__(self):
+      self.num_camadas_escondidas = 30
+      self.num_epocas = 1000
+      self.tx_aprendizado = 0.005
+      self.parada_antecipada = False
+      self.validacao_cruzada = False
+      self.num_vezes = 0
+      self.pat = 0
+      self.mlp = None
+      
+  def carregar_hyperparametros(self):
     # Entrada do usuário para obter número de camadas escondidas, épocas, taxa de treinamento, parada antecipada e validação cruzada
-    num_camadas_escondidas = int(input("Digite o número de neurônios na camadas escondidas: "))
-    num_epocas = int(input("Digite o número de épocas: "))
-    tx_aprendizado = float(input("Digite a taxa de treinamento: "))
+    self.num_camadas_escondidas = int(input("Digite o número de neurônios na camadas escondidas: "))
+    self.num_epocas = int(input("Digite o número de épocas: "))
+    self.tx_aprendizado = float(input("Digite a taxa de treinamento: "))
     parada_antecipada_str = input("Parada antecipada? true or false ")
     # Converter a entrada para um valor booleano
     if parada_antecipada_str == "true":
-        parada_antecipada = True
+        self.parada_antecipada = True
     else:
-        parada_antecipada = False
+        self.parada_antecipada = False
 
-    if parada_antecipada: 
-        pat = int(input("Patience? "))
+    if self.parada_antecipada: 
+        self.pat = int(input("Patience? "))
     else:
-        pat=20
+        self.pat=20
 
     validacao_cruzada_str = input("Validação Cruzada? true or false ")
     # Converter a entrada para um valor booleano
     if validacao_cruzada_str == "true":
-        validacao_cruzada = True
+        self.validacao_cruzada = True
     else:
-        validacao_cruzada = False
+        self.validacao_cruzada = False
         
-    if validacao_cruzada:
-        num_vezes = int(input("Num Folds: "))
+    if self.validacao_cruzada:
+        self.num_vezes = int(input("Num Folds: "))
     else:
-        num_vezes = 5
+        self.num_vezes = 5
 
+
+  def carregar_mlp(self):
     # Carregar dados de treinamento
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
-    os.getcwd()
-    X_train, y_train = load_data('X_bruto.txt', 'Y_bruto.txt')
-    X_val, y_val = load_data('X_validação.txt', 'Y_validação.txt')
+    #os.getcwd()
+
+    util = Util_Functions()
+
+    X_train, y_train = util.load_data('X_bruto.txt', 'Y_bruto.txt')
+    X_val, y_val = util.load_data('X_validação.txt', 'Y_validação.txt')
     #X_train, y_train = load_data('')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
@@ -399,30 +441,28 @@ if __name__ == "__main__":
         exit()
 
     # Transformar os rótulos de letras em códigos binários
-    y_encoded = one_hot_encode(y_train)
-    y_val_encoded = one_hot_encode(y_val)
-
+    y_encoded = util.one_hot_encode(y_train)
+    y_val_encoded = util.one_hot_encode(y_val)
 
     # Carregar os pesos treinados
-    mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
+    self.mlp = MLP(input_size=120, hidden_size=self.num_camadas_escondidas, output_size=26)
 
     # Treinamento da MLP com Hyperparametros
-    mlp.train(X_train, y_encoded, X_val, y_val_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
+    self.mlp.train(X_train, y_encoded, X_val, y_val_encoded, epochs=self.num_epocas, learning_rate=self.tx_aprendizado, use_cross_validation=self.validacao_cruzada, num_folds=self.num_vezes, early_stopping=self.parada_antecipada, patience=self.pat)
 
     # Salvar Pesos em csv
-    mlp.save_weights()
-
+    self.mlp.save_weights()
 
     i = 0
     y_pred = []
     classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] # Exemplo de classes (substitua pelas suas)
     num_classes = len(classes)
-    y_true = letras_para_indices(y_val)
+    y_true = util.letras_para_indices(y_val)
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
     for item in X_val:
         #print("Valor em binario",item)
-        previsao = mlp.predict(item)
+        previsao = self.mlp.predict(item)
         letra_prevista_index = np.argmax(previsao)
         letra_prevista = chr(ord('a') + letra_prevista_index)
         #print("Letra Prevista:", letra_prevista)
@@ -430,11 +470,21 @@ if __name__ == "__main__":
         y_pred.append(letra_prevista_index)
         i = i + 1
 
-    print(len(X_train))
-    print(len(y_true))
-    print(num_camadas_escondidas)
-    print(num_epocas)
+    #print(len(X_train))
+    #print(len(y_true))
+    #print(self.num_camadas_escondidas)
+    #print(self.num_epocas)
 
     # Cálculo da matriz e criação da matriz de confusão
-    confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
-    mlp.plot_confusion_matrix(confusion_matrix, classes)
+    confusion_matrix = self.mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
+    self.mlp.plot_confusion_matrix(confusion_matrix, classes)
+
+  def iniciar_programa(self):
+    self.carregar_hyperparametros()
+    self.carregar_mlp()
+
+
+
+if __name__ == "__main__":
+    programa = Programa()
+    programa.iniciar_programa()
