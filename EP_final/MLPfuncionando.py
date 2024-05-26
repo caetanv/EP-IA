@@ -367,23 +367,22 @@ if __name__ == "__main__":
     else:
         pat=20
 
-    validacao_cruzada_str = input("Validação Cruzada? true or false ")
-    # Converter a entrada para um valor booleano
-    if validacao_cruzada_str == "true":
+    estratégia = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n"))
+    if estratégia == 1:
         validacao_cruzada = True
-    else:
-        validacao_cruzada = False
-        
-    if validacao_cruzada:
         num_vezes = int(input("Num Folds: "))
-    else:
+        X_train, y_train = load_data('X_CV.txt', 'Y_CV.txt')
+        X_val, y_val = load_data('X_CV.txt', 'Y_CV.txt')
+    if estratégia == 0:
         num_vezes = 5
+        validacao_cruzada = False
+        os.getcwd()
+        X_train, y_train = load_data('X_treinamento.txt', 'Y_treinamento.txt')
+        X_val, y_val = load_data('X_validação.txt', 'Y_validação.txt')
+    
 
     # Carregar dados de treinamento
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
-    os.getcwd()
-    X_train, y_train = load_data('X_treinamento.txt', 'Y_treinamento.txt')
-    X_val, y_val = load_data('X_validação.txt', 'Y_validação.txt')
     X_test, y_test = load_data('X_verificação_final.txt', 'Y_verificação_final.txt')
     #X_train, y_train = load_data('')
 
