@@ -3,10 +3,9 @@ import csv
 import os
 import matplotlib.pyplot as plt
 
-# https://github.com/EdgarLiraa/IA-Multilayer-Perceptron/blob/main/rede.py
 
 class MLP:
-    def __init__(self, input_size, hidden_size, output_size, weights_filename='weights.csv'):
+    def __init__(self, input_size, hidden_size, output_size, weights_filename='pesos.csv'):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -44,7 +43,7 @@ class MLP:
         return x * (1 - x)
     
     # Função de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
-    def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
+    def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):      
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
 
@@ -58,7 +57,7 @@ class MLP:
         
 
     def _train_single_fold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
-        best_mse = float('inf')
+        best_mse = 0.01
         patience_count = 0
         valores_MSE_train = []
         valores_MSE_val = []
@@ -102,7 +101,7 @@ class MLP:
                 self.epocas.append(epoch)
                 print(f"Época {epoch + 1}: MSE Treino: {mse_train:.4f}, MSE Validação: {mse_val:.4f}, Acurácia de Treino: {accuracy_train:.4f}, Acurácia de Validação: {accuracy_val:.4f}")
 
-                # Early stoppingot(self.sigmoid(output).T, ou
+                #Parada antecipada
                 if early_stopping:
                     if mse_val < best_mse:
                         best_mse = mse_val
@@ -110,16 +109,8 @@ class MLP:
                     else:
                         patience_count += 1
                         if patience_count >= patience:
-                            print(f"Early stopping at epoch {epoch + 1}")
+                            print(f"Parada antecipada na época {epoch + 1}")
                             break
-        '''
-        self.valores_MSE_train.append(valores_MSE_train)
-        self.valores_MSE_val.append(valores_MSE_val)
-        self.accuracies_train.append(accuracies_train)
-        self.accuracies_val.append(accuracies_val)
-        self.epocas.append(epocas)
-        '''
-
         return
 
     def predict(self, X):
@@ -133,12 +124,12 @@ class MLP:
 
         return output
 
-    def save_weights(self):
-        with open(self.weights_filename, 'w', newline='') as csvfile:
+    def save_weights(self, filename):
+        with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Pesos da camada de entrada para oculta'])
             writer.writerows(self.weights_input_hidden)
-            writer.writerow(['Pesos da camada oculta para saída'])
+            writer.writerow(['Pesos da camada oculta para saida'])
             writer.writerows(self.weights_hidden_output)
 
     def load_weights(self):
@@ -156,7 +147,7 @@ class MLP:
                         continue
                     if current_row == 'Pesos da camada de entrada para oculta':
                         weights_input_hidden.append([float(val) for val in row])
-                    elif current_row == 'Pesos da camada oculta para saída':
+                    elif current_row == 'Pesos da camada oculta para saida':
                         weights_hidden_output.append([float(val) for val in row])
 
             self.weights_input_hidden = np.array(weights_input_hidden)
@@ -175,6 +166,8 @@ class MLP:
         output_input = np.dot(hidden_output, self.weights_hidden_output) + self.bias_output
         # Aplicar a função de ativação (pode ser softmax para classificação)
         output = self.sigmoid(output_input)
+
+        
 
         return output, hidden_output
 
@@ -389,8 +382,9 @@ if __name__ == "__main__":
     # Carregar dados de treinamento
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
     os.getcwd()
-    X_train, y_train = load_data('X_bruto.txt', 'Y_bruto.txt')
+    X_train, y_train = load_data('X_treinamento.txt', 'Y_treinamento.txt')
     X_val, y_val = load_data('X_validação.txt', 'Y_validação.txt')
+    X_test, y_test = load_data('X_verificação_final.txt', 'Y_verificação_final.txt')
     #X_train, y_train = load_data('')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
@@ -406,21 +400,24 @@ if __name__ == "__main__":
     # Carregar os pesos treinados
     mlp = MLP(input_size=120, hidden_size=num_camadas_escondidas, output_size=26)
 
+    # Salvar pesos iniciais em csv
+    mlp.save_weights('EP_final\pesos_iniciais.csv')
+
     # Treinamento da MLP com Hyperparametros
     mlp.train(X_train, y_encoded, X_val, y_val_encoded, epochs=num_epocas, learning_rate=tx_aprendizado, use_cross_validation=validacao_cruzada, num_folds=num_vezes, early_stopping=parada_antecipada, patience=pat)
 
-    # Salvar Pesos em csv
-    mlp.save_weights()
+    # Salvar Pesos finais em csv
+    mlp.save_weights('EP_final\pesos_finais.csv')
 
 
     i = 0
     y_pred = []
-    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] # Exemplo de classes (substitua pelas suas)
+    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     num_classes = len(classes)
-    y_true = letras_para_indices(y_val)
+    y_true = letras_para_indices(y_test)
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
-    for item in X_val:
+    for item in X_test:
         #print("Valor em binario",item)
         previsao = mlp.predict(item)
         letra_prevista_index = np.argmax(previsao)
