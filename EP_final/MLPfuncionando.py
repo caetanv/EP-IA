@@ -313,7 +313,10 @@ def ler_rotulos_letras(nome_arquivo):
     return [rotulo.strip() for rotulo in rotulos]
 
 def split_data(X, y, num_folds):
-    fold_size = len(X) // num_folds
+    num_alfabetos = len(X) // 26     # Obtem a quantidade total de alfabetos
+    a = num_alfabetos // num_folds   # Divide os alfabetos em  k-folds de partes iguais
+    fold_size = a * 26               # Obtem as letras dos alfabetos em cada fold
+
     indices = np.arange(len(X))
     np.random.shuffle(indices)
     X_shuffled = X[indices]
@@ -321,7 +324,7 @@ def split_data(X, y, num_folds):
     X_folds = []
     y_folds = []
     for i in range(num_folds):
-        start = i * fold_size
+        start = (i * fold_size) + 1
         end = (i + 1) * fold_size if i < num_folds - 1 else len(X)
         X_folds.append(X_shuffled[start:end])
         y_folds.append(y_shuffled[start:end])
@@ -426,7 +429,7 @@ if __name__ == "__main__":
         y_pred.append(letra_prevista_index)
         i = i + 1
 
-    print(len(X_test))
+    print(len(X_train))
     print(len(y_true))
     print("Número de neurônios na camada escondida: " + str(num_camadas_escondidas) + "\nNúmero de épocas: " + str(num_epocas) + "\nTaxa de treinamento: " + str(tx_aprendizado))
 
