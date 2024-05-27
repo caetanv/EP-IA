@@ -426,10 +426,9 @@ if __name__ == "__main__":
         y_pred.append(letra_prevista_index)
         i = i + 1
 
-    print(len(X_train))
+    print(len(X_test))
     print(len(y_true))
-    print(num_camadas_escondidas)
-    print(num_epocas)
+    print("Número de neurônios na camada escondida: " + str(num_camadas_escondidas) + "\nNúmero de épocas: " + str(num_epocas) + "\nTaxa de treinamento: " + str(tx_aprendizado))
 
     # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
