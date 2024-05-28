@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 class MLP:
-    def __init__(self, input_size, hidden_size, output_size, weights_filename='weights.csv'):
+    def __init__(self, input_size, hidden_size, output_size, weights_filename='pesos_finais.csv'):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
@@ -23,7 +23,7 @@ class MLP:
         self.epocas = []
         self.accuracies_train = []
         self.accuracies_val = []
-        self.cont_fold = 0
+        self.cont_fold = []
 
         
         
@@ -43,7 +43,7 @@ class MLP:
         return x * (1 - x)
     
     # Função de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
-    def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):
+    def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):      
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
 
@@ -55,7 +55,7 @@ class MLP:
         
 
     def _train_single_fold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
-        best_mse = float('inf')
+        best_mse = 0.01
         patience_count = 0
         valores_MSE_train = []
         valores_MSE_val = []
@@ -99,7 +99,7 @@ class MLP:
                 self.epocas.append(epoch)
                 print(f"Época {epoch + 1}: MSE Treino: {mse_train:.4f}, MSE Validação: {mse_val:.4f}, Acurácia de Treino: {accuracy_train:.4f}, Acurácia de Validação: {accuracy_val:.4f}")
 
-                # Early stoppingot(self.sigmoid(output).T, ou
+                #Parada antecipada
                 if early_stopping:
                     if mse_val < best_mse:
                         best_mse = mse_val
@@ -107,8 +107,9 @@ class MLP:
                     else:
                         patience_count += 1
                         if patience_count >= patience:
-                            print(f"Early stopping at epoch {epoch + 1}")
+                            print(f"Parada antecipada na época {epoch + 1}")
                             break
+
         '''
         self.valores_MSE_train.append(valores_MSE_train)
         self.valores_MSE_val.append(valores_MSE_val)
@@ -119,7 +120,7 @@ class MLP:
 
         self.gráfico_MSE(self.epocas, self.valores_MSE_train, self.epocas, self.valores_MSE_val)
         self.gráfico_acc(self.epocas, self.accuracies_train, self.epocas, self.accuracies_val)
-
+        
         return
 
     def predict(self, X):
@@ -133,15 +134,16 @@ class MLP:
 
         return output
 
+
     def prever_letra(self, item):
         return chr(ord('a') + np.argmax(mlp.predict(item)))
 
-    def save_weights(self):
-        with open(self.weights_filename, 'w', newline='') as csvfile:
+    def save_weights(self, filename):
+        with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['Pesos da camada de entrada para oculta'])
             writer.writerows(self.weights_input_hidden)
-            writer.writerow(['Pesos da camada oculta para saída'])
+            writer.writerow(['Pesos da camada oculta para saida'])
             writer.writerows(self.weights_hidden_output)
 
     def load_weights(self):
@@ -159,7 +161,7 @@ class MLP:
                         continue
                     if current_row == 'Pesos da camada de entrada para oculta':
                         weights_input_hidden.append([float(val) for val in row])
-                    elif current_row == 'Pesos da camada oculta para saída':
+                    elif current_row == 'Pesos da camada oculta para saida':
                         weights_hidden_output.append([float(val) for val in row])
 
             self.weights_input_hidden = np.array(weights_input_hidden)
@@ -204,7 +206,10 @@ class MLP:
 
 
     def split_data(self, X, y, num_folds):
-        fold_size = len(X) // num_folds
+        num_alfabetos = len(X) // 26     # Obtem a quantidade total de alfabetos
+        a = num_alfabetos // num_folds   # Divide os alfabetos em  k-folds de partes iguais
+        fold_size = a * 26               # Obtem as letras dos alfabetos em cada fold
+
         indices = np.arange(len(X))
         np.random.shuffle(indices)
         X_shuffled = X[indices]
@@ -212,7 +217,7 @@ class MLP:
         X_folds = []
         y_folds = []
         for i in range(num_folds):
-            start = i * fold_size
+            start = (i * fold_size) + 1
             end = (i + 1) * fold_size if i < num_folds - 1 else len(X)
             X_folds.append(X_shuffled[start:end])
             y_folds.append(y_shuffled[start:end])
@@ -256,11 +261,9 @@ class MLP:
             # Treina o modelo
             mlp = MLP(self.input_size, self.hidden_size, self.output_size, self.weights_filename)
             mlp.train(X_train, y_train, X_val, y_val, epochs=epochs, learning_rate=learning_rate, use_cross_validation=False)
+            mlp.cont_fold.append(i+1)
             mlps.append(mlp)
-                
             
-            self.cont_fold = i + 1
-
             print(f"Fim do Fold {i + 1}")
 
         max = 0 
@@ -274,6 +277,7 @@ class MLP:
         self.weights_hidden_output = mlps[z].weights_hidden_output
         self.bias_output = mlps[z].bias_output
         self.accuracies_val = mlps[z].accuracies_val
+        self.cont_fold = mlps[z].cont_fold
         
         return
     
@@ -289,7 +293,7 @@ class MLP:
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         # Nome do arquivo com a data atual
-        filename = f'grafico_MSE_{current_date}.png'
+        filename = f'grafico_MSE_{self.cont_fold}_{current_date}.png'
         
         # Salvar o gráfico
         plt.savefig(filename)
@@ -309,7 +313,7 @@ class MLP:
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         # Nome do arquivo com a data atual
-        filename = f'grafico_ACC_{current_date}.png'
+        filename = f'grafico_ACC_{self.cont_fold}_{current_date}.png'
 
         # Salvar o gráfico
         plt.savefig(filename)
@@ -383,6 +387,8 @@ class Util_Functions:
 
     def transformar_rotulos(self, labels):
         return [self.letras_para_indices(label) for label in labels]
+
+
 class Programa:
 
   def __init__(self):
@@ -412,29 +418,26 @@ class Programa:
     else:
         self.pat=20
 
-    validacao_cruzada_str = input("Validação Cruzada? true or false ")
-    # Converter a entrada para um valor booleano
-    if validacao_cruzada_str == "true":
+    estratégia = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n"))
+    if estratégia == 1:
         self.validacao_cruzada = True
-    else:
-        self.validacao_cruzada = False
-        
-    if self.validacao_cruzada:
         self.num_vezes = int(input("Num Folds: "))
-    else:
+    if estratégia == 0:
         self.num_vezes = 5
-
-
+        self.validacao_cruzada = False
+        os.getcwd()
+    
   def carregar_mlp(self):
     # Carregar dados de treinamento
     #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
+
     #os.getcwd()
 
     util = Util_Functions()
 
-    X_train, y_train = util.load_data('X_bruto.txt', 'Y_bruto.txt')
-    X_val, y_val = util.load_data('X_validação.txt', 'Y_validação.txt')
-    #X_train, y_train = load_data('')
+    X_train, y_train = util.load_data('X_CV.txt', 'Y_CV.txt')
+    X_val, y_val = util.load_data('X_CV.txt', 'Y_CV.txt')
+    X_test, y_test = util.load_data('X_verificação_final.txt', 'Y_verificação_final.txt')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
     if len(X_train) != len(y_train):
@@ -448,20 +451,23 @@ class Programa:
     # Carregar os pesos treinados
     self.mlp = MLP(input_size=120, hidden_size=self.num_camadas_escondidas, output_size=26)
 
+    # Salvar pesos iniciais em csv
+    self.mlp.save_weights('pesos_iniciais.csv')
+
     # Treinamento da MLP com Hyperparametros
     self.mlp.train(X_train, y_encoded, X_val, y_val_encoded, epochs=self.num_epocas, learning_rate=self.tx_aprendizado, use_cross_validation=self.validacao_cruzada, num_folds=self.num_vezes, early_stopping=self.parada_antecipada, patience=self.pat)
 
-    # Salvar Pesos em csv
-    self.mlp.save_weights()
+    # Salvar Pesos finais em csv
+    self.mlp.save_weights('pesos_finais.csv')
 
     i = 0
     y_pred = []
-    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'] # Exemplo de classes (substitua pelas suas)
+    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     num_classes = len(classes)
-    y_true = util.letras_para_indices(y_val)
+    y_true = util.letras_para_indices(y_test)
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
-    for item in X_val:
+    for item in X_test:
         #print("Valor em binario",item)
         previsao = self.mlp.predict(item)
         letra_prevista_index = np.argmax(previsao)
@@ -476,6 +482,10 @@ class Programa:
     #print(self.num_camadas_escondidas)
     #print(self.num_epocas)
 
+    print(len(X_train))
+    print(len(y_true))
+    print("Número de neurônios na camada escondida: " + str(self.num_camadas_escondidas) + "\nNúmero de épocas: " + str(self.num_epocas) + "\nTaxa de treinamento: " + str(self.tx_aprendizado))
+
     # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = self.mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
     self.mlp.plot_confusion_matrix(confusion_matrix, classes)
@@ -483,7 +493,6 @@ class Programa:
   def iniciar_programa(self):
     self.carregar_hyperparametros()
     self.carregar_mlp()
-
 
 
 if __name__ == "__main__":
