@@ -204,7 +204,7 @@ class MLP:
             self.weights_input_hidden += X.T.dot(hidden_delta) * learning_rate
             self.bias_hidden += np.sum(hidden_delta, axis=0) * learning_rate
 
-
+    # Função para dividir os dados de folds de tamanhos iguais
     def split_data(self, X, y, num_folds):
         num_alfabetos = len(X) // 26     # Obtem a quantidade total de alfabetos
         a = num_alfabetos // num_folds   # Divide os alfabetos em  k-folds de partes iguais
@@ -223,13 +223,14 @@ class MLP:
             y_folds.append(y_shuffled[start:end])
         return X_folds, y_folds
 
-
+    # Função que calcula a matriz de confusão
     def calculate_confusion_matrix(self, y_true, y_pred, num_classes):
         confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
         for true_label, pred_label in zip(y_true, y_pred):
             confusion_matrix[true_label, pred_label] += 1
         return confusion_matrix
 
+    # Função para exibir a matriz
     def plot_confusion_matrix(self, confusion_matrix, classes):
         num_classes = len(classes)
         plt.figure(figsize=(8, 6))
@@ -246,6 +247,13 @@ class MLP:
             for j in range(num_classes):
                 plt.text(j, i, confusion_matrix[i, j], ha='center', va='center', color='white' if confusion_matrix[i, j] > (confusion_matrix.max() / 2) else 'black')
 
+        # Obter a data atual
+        current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+        # Nome do arquivo com a data atual
+        filename = f'grafico_matriz_{current_date}.png'
+        # Salvar o gráfico
+        plt.savefig(filename)
         plt.show()
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
@@ -266,12 +274,14 @@ class MLP:
             
             print(f"Fim do Fold {i + 1}")
 
+        # Verifica qual mlp possui maior acurácia nos dados de validação
         max = 0 
         for m in range(len(mlps)):
             if np.max(mlps[m].accuracies_val) > max:
                 max = np.max(mlps[m].accuracies_val)
                 z = m
 
+        # Incorpora os melhores pesos a partir da mlp com maior acurácia
         self.weights_input_hidden = mlps[z].weights_input_hidden
         self.bias_hidden = mlps[z].bias_hidden
         self.weights_hidden_output = mlps[z].weights_hidden_output
@@ -288,6 +298,7 @@ class MLP:
         plt.title('Gráfico de MSE em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Valor do MSE')
+        plt.legend()
 
         # Obter a data atual
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -300,7 +311,6 @@ class MLP:
         plt.show()
 
 
-
     # Função para criar gráfico de acurácia em função dos 'fold'
     def gráfico_acc(self, x_train , y_train, x_val, y_val):
         plt.plot(x_train, y_train, color='purple', label='Treino')
@@ -308,6 +318,7 @@ class MLP:
         plt.title('Gráfico de acurácia em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Acurácia')
+        plt.legend()
 
         # Obter a data atual
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -319,7 +330,7 @@ class MLP:
         plt.savefig(filename)
         plt.show()
 
-
+# Classe com funções para auxiliar na leitura dos dados de entrada
 class Util_Functions:
     def __init__(self):
         pass
@@ -365,7 +376,7 @@ class Util_Functions:
         os.chdir(atual)
         return [rotulo.strip() for rotulo in rotulos]
 
-
+    # Transforma uma letra em um índice de intervalo [0:25]
     def letra_para_indice(self, letra):
         if 'A' <= letra <= 'Z':
             return ord(letra) - ord('A')
@@ -374,7 +385,7 @@ class Util_Functions:
         else:
             raise ValueError("Caractere fornecido não é uma letra do alfabeto.")
 
-
+    # Transforma um vetor de letras em um vetor de índices de intervalo [0:25]
     def letras_para_indices(self, vetor_letras):
         indices = []
         for letra in vetor_letras:
@@ -384,10 +395,6 @@ class Util_Functions:
             else:
                 raise ValueError(f"Caractere '{letra}' não é uma letra do alfabeto.")
         return indices
-
-    def transformar_rotulos(self, labels):
-        return [self.letras_para_indices(label) for label in labels]
-
 
 class Programa:
 
@@ -400,6 +407,7 @@ class Programa:
       self.num_vezes = 0
       self.pat = 0
       self.mlp = None
+      self.avaliação = 0
       
   def carregar_hyperparametros(self):
     # Entrada do usuário para obter número de camadas escondidas, épocas, taxa de treinamento, parada antecipada e validação cruzada
@@ -413,30 +421,36 @@ class Programa:
     else:
         self.parada_antecipada = False
 
+    # Obter valor de 'Patience' do usuário para a parada antecipada
     if self.parada_antecipada: 
         self.pat = int(input("Patience? "))
     else:
         self.pat=20
 
-    estratégia = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n"))
-    if estratégia == 1:
-        self.validacao_cruzada = True
-        self.num_vezes = int(input("Num Folds: "))
-    if estratégia == 0:
-        self.num_vezes = 5
-        self.validacao_cruzada = False
-        os.getcwd()
+    # Seleção da estratégia de avaliação do classificador
+    self.avaliação = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n[2] Hold-out e Validação cruzada\n"))
     
   def carregar_mlp(self):
-    # Carregar dados de treinamento
-    #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
-
-    #os.getcwd()
-
     util = Util_Functions()
 
-    X_train, y_train = util.load_data('X_CV.txt', 'Y_CV.txt')
-    X_val, y_val = util.load_data('X_CV.txt', 'Y_CV.txt')
+    # Carrega os dados e separa-os em dados de treinamento e dados de validação de acordo com a avaliação escolhida pelo usuário
+    if self.avaliação == 2:
+        self.validacao_cruzada = True
+        self.num_vezes = int(input("Num Folds: "))
+        X_train, y_train = util.load_data('X_treinamento.txt', 'Y_treinamento.txt')
+        X_val, y_val = util.load_data('X_validação.txt', 'Y_validação.txt')        
+    elif self.avaliação == 1:
+        self.validacao_cruzada = True
+        self.num_vezes = int(input("Num Folds: "))
+        X_train, y_train = util.load_data('X_CV.txt', 'Y_CV.txt')
+        X_val, y_val = util.load_data('X_CV.txt', 'Y_CV.txt')
+
+    elif self.avaliação == 0:
+        self.num_vezes = 5
+        self.validacao_cruzada = False
+        X_train, y_train = util.load_data('X_treinamento.txt', 'Y_treinamento.txt')
+        X_val, y_val = util.load_data('X_validação.txt', 'Y_validação.txt') 
+
     X_test, y_test = util.load_data('X_verificação_final.txt', 'Y_verificação_final.txt')
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
@@ -476,11 +490,6 @@ class Programa:
         #print("Letra Real", y_train[i])
         y_pred.append(letra_prevista_index)
         i = i + 1
-
-    #print(len(X_train))
-    #print(len(y_true))
-    #print(self.num_camadas_escondidas)
-    #print(self.num_epocas)
 
     print(len(X_train))
     print(len(y_true))
