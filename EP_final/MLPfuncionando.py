@@ -42,7 +42,7 @@ class MLP:
     def sigmoid_derivative(self, x):
         return x * (1 - x)
     
-    # Função de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
+    # Função de treinamento que dependendo da entrada do usuário, realiza ou não a cross validation
     def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):      
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
@@ -354,29 +354,38 @@ def transformar_rotulos(labels):
     return [letras_para_indices(label) for label in labels]
 
 if __name__ == "__main__":
+
     # Entrada do usuário para obter número de camadas escondidas, épocas, taxa de treinamento, parada antecipada e validação cruzada
     num_camadas_escondidas = int(input("Digite o número de neurônios na camadas escondidas: "))
     num_epocas = int(input("Digite o número de épocas: "))
     tx_aprendizado = float(input("Digite a taxa de treinamento: "))
     parada_antecipada_str = input("Parada antecipada? true or false ")
-    # Converter a entrada para um valor booleano
+
+    # Converter a entrada de 'Parada antecipada' para um valor booleano
     if parada_antecipada_str == "true":
         parada_antecipada = True
     else:
         parada_antecipada = False
 
+    # Obter o valor do 'Patience' da parada antecipada
     if parada_antecipada: 
         pat = int(input("Patience? "))
     else:
         pat=20
 
-    estratégia = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n"))
-    if estratégia == 1:
+    # Obter a estratégia para os classificadores
+    estratégia = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n[2] Hold-out e Validação cruzada\n"))
+    if estratégia ==2:
+        validacao_cruzada = True
+        num_vezes = int(input("Num Folds: "))
+        X_train, y_train = load_data('X_treinamento.txt', 'Y_treinamento.txt')
+        X_val, y_val = load_data('X_validação.txt', 'Y_validação.txt')                
+    elif estratégia == 1:
         validacao_cruzada = True
         num_vezes = int(input("Num Folds: "))
         X_train, y_train = load_data('X_CV.txt', 'Y_CV.txt')
         X_val, y_val = load_data('X_CV.txt', 'Y_CV.txt')
-    if estratégia == 0:
+    elif estratégia == 0:
         num_vezes = 5
         validacao_cruzada = False
         os.getcwd()
