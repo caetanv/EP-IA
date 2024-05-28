@@ -11,6 +11,7 @@ class MLP:
         self.output_size = output_size
 
         # Inicialização dos pesos e biases
+        #Multiplicando pesos por 0.01 para evitar a saturação dos vetores gradientes
         self.weights_input_hidden = np.random.randn(input_size, hidden_size) * 0.01
         self.bias_hidden = np.zeros(hidden_size)
         self.weights_hidden_output = np.random.randn(hidden_size, output_size) * 0.01
@@ -57,6 +58,7 @@ class MLP:
     def _train_single_fold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
         best_mse = 0.01
         patience_count = 0
+        mse_val = 0
         valores_MSE_train = []
         valores_MSE_val = []
         accuracies_train = []
@@ -99,16 +101,16 @@ class MLP:
                 self.epocas.append(epoch)
                 print(f"Época {epoch + 1}: MSE Treino: {mse_train:.4f}, MSE Validação: {mse_val:.4f}, Acurácia de Treino: {accuracy_train:.4f}, Acurácia de Validação: {accuracy_val:.4f}")
 
-                #Parada antecipada
-                if early_stopping:
-                    if mse_val > best_mse:
-                        best_mse = mse_val
-                        patience_count = 0
-                    else:
-                        patience_count += 1
-                        if patience_count >= patience:
-                            print(f"Parada antecipada na época {epoch + 1}")
-                            break
+            #Parada antecipada, onde só muda caso houver uma mudança substancial no erro (até 3 casas decimais)
+            if early_stopping:
+                if mse_val > best_mse:
+                    best_mse = mse_val
+                    patience_count = 0
+                else:
+                    patience_count += 1
+                    if patience_count >= patience:
+                        print(f"Parada antecipada na época {epoch + 1}")
+                        break
 
         '''
         self.valores_MSE_train.append(valores_MSE_train)
@@ -252,8 +254,14 @@ class MLP:
 
         # Nome do arquivo com a data atual
         filename = f'grafico_matriz_{current_date}.png'
+        dir = 'gráficos/matriz'
+
+        filepath = os.path.join(dir, filename)
+
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         # Salvar o gráfico
-        plt.savefig(filename)
+        plt.savefig(filepath)
         plt.show()
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
@@ -302,12 +310,18 @@ class MLP:
 
         # Obter a data atual
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        
+        dir = 'gráficos/MSE'
 
         # Nome do arquivo com a data atual
         filename = f'grafico_MSE_{self.cont_fold}_{current_date}.png'
+        filepath = os.path.join(dir, filename)
         
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
         # Salvar o gráfico
-        plt.savefig(filename)
+        plt.savefig(filepath)
         plt.show()
 
 
@@ -324,10 +338,15 @@ class MLP:
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         # Nome do arquivo com a data atual
+        dir = 'gráficos/acurácia'
         filename = f'grafico_ACC_{self.cont_fold}_{current_date}.png'
 
+        filepath = os.path.join(dir, filename)
+
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         # Salvar o gráfico
-        plt.savefig(filename)
+        plt.savefig(filepath)
         plt.show()
 
 # Classe com funções para auxiliar na leitura dos dados de entrada
