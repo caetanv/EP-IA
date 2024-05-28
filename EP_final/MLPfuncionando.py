@@ -103,7 +103,7 @@ class MLP:
 
                 #Parada antecipada
                 if early_stopping:
-                    if mse_val < best_mse:
+                    if mse_val > best_mse:
                         best_mse = mse_val
                         patience_count = 0
                     else:
