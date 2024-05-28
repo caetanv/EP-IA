@@ -11,9 +11,9 @@ class MLP:
         self.output_size = output_size
 
         # Inicialização dos pesos e biases
-        self.weights_input_hidden = np.random.randn(input_size, hidden_size)
+        self.weights_input_hidden = np.random.randn(input_size, hidden_size) * 0.01
         self.bias_hidden = np.zeros(hidden_size)
-        self.weights_hidden_output = np.random.randn(hidden_size, output_size)
+        self.weights_hidden_output = np.random.randn(hidden_size, output_size) * 0.01
         self.bias_output = np.zeros(output_size)
 
         self.weights_filename = weights_filename
