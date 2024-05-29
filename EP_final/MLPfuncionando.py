@@ -288,6 +288,7 @@ class MLP:
         plt.title('Gráfico de MSE em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Valor do MSE')
+        plt.legend()
 
         # Obter a data atual
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
@@ -308,6 +309,7 @@ class MLP:
         plt.title('Gráfico de acurácia em relação às épocas')
         plt.xlabel('Épocas')
         plt.ylabel('Acurácia')
+        plt.legend()
 
         # Obter a data atual
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
