@@ -11,13 +11,15 @@ class MLP:
         self.output_size = output_size
 
         # Inicialização dos pesos e biases
-        self.weights_input_hidden = np.random.randn(input_size, hidden_size)
+        # Multiplicando pesos por 0.01 para evitar a saturação dos vetores gradientes
+        self.weights_input_hidden = np.random.randn(input_size, hidden_size) * 0.01
         self.bias_hidden = np.zeros(hidden_size)
-        self.weights_hidden_output = np.random.randn(hidden_size, output_size)
+        self.weights_hidden_output = np.random.randn(hidden_size, output_size) * 0.01
         self.bias_output = np.zeros(output_size)
 
         self.weights_filename = weights_filename
 
+        # Listas que auxiliam na construção dos gráficos
         self.valores_MSE_train = []
         self.valores_MSE_val = []
         self.epocas = []
@@ -25,8 +27,6 @@ class MLP:
         self.accuracies_val = []
         self.cont_fold = []
 
-        
-        
         # Carregar os pesos salvos se o arquivo existir
         #self.load_weights()
 
@@ -38,11 +38,11 @@ class MLP:
         # Função sigmoidal com os valores de entrada clipados
         return 1 / (1 + np.exp(-clipped_x))
 
-    # Função que calcula a derivada da sigmoide
+    # Método que calcula a derivada da sigmoide
     def sigmoid_derivative(self, x):
         return x * (1 - x)
     
-    # Função de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
+    # Método de treinamento que dependendo da entrada do usuário, realiza  (ou não) a cross validation
     def train(self, X, y, X_val, y_val, epochs=1000, learning_rate=0.1, use_cross_validation=False, num_folds=5, early_stopping=False, patience=10):      
         if use_cross_validation:
             self.cross_validation(X,y,num_folds, self.input_size, self.hidden_size, self.output_size, epochs, learning_rate)
@@ -53,27 +53,22 @@ class MLP:
         print (f'Acurácia do modelo: {(np.max(self.accuracies_val) * 100):.1f}%')
 
         
-
+    # Método de treinamento específica para o caso de um único fold
     def _train_single_fold(self, X_train, y_train, X_val, y_val, epochs, learning_rate, early_stopping, patience):
         best_mse = 0.01
         patience_count = 0
-        valores_MSE_train = []
-        valores_MSE_val = []
-        accuracies_train = []
-        accuracies_val = []
-        epocas = []
+        mse_val = 0
 
         for epoch in range(epochs):
 
             output, hidden_output = self.forward_pass(X_train)
-            
             
             # Backpropagation
             self.back_propagation(X_train,y_train,learning_rate,output,hidden_output)
             
             # Define o intervalo em que erro e acurácia são definidos
             if (epoch + 1) % 100 == 0:
-                #Calcula o erro para conjunto de teste
+                # Calcula o erro para conjunto de teste
                 val_pred_train = self.predict(X_train)
                 mse_train = np.mean((y_train - val_pred_train) ** 2)
                 self.valores_MSE_train.append(mse_train)
@@ -95,34 +90,29 @@ class MLP:
                 accuracy_val = np.mean(np.argmax(predictions_val, axis=1) == true_labels_val)
                 self.accuracies_val.append(accuracy_val)
 
-                #Guarda o valor das épocas correspondentes
+                # Guarda o valor das épocas correspondentes
                 self.epocas.append(epoch)
+                # Exibe no terminal , respectivamente, a época, o erro quadrático médio do conjunto de treino, o erro quadrático médio do conjunto de validação, a acurácia do conjunto de treino e a acurácia do conjunto de validação na respectiva época
                 print(f"Época {epoch + 1}: MSE Treino: {mse_train:.4f}, MSE Validação: {mse_val:.4f}, Acurácia de Treino: {accuracy_train:.4f}, Acurácia de Validação: {accuracy_val:.4f}")
 
-                #Parada antecipada
-                if early_stopping:
-                    if mse_val > best_mse:
-                        best_mse = mse_val
-                        patience_count = 0
-                    else:
-                        patience_count += 1
-                        if patience_count >= patience:
-                            print(f"Parada antecipada na época {epoch + 1}")
-                            break
-
-        '''
-        self.valores_MSE_train.append(valores_MSE_train)
-        self.valores_MSE_val.append(valores_MSE_val)
-        self.accuracies_train.append(accuracies_train)
-        self.accuracies_val.append(accuracies_val)
-        self.epocas.append(epocas)
-        '''
-
+            # Parada antecipada, onde só muda caso houver uma mudança substancial no erro (até 3 casas decimais)
+            if early_stopping:
+                if mse_val > best_mse:
+                    best_mse = mse_val
+                    patience_count = 0
+                else:
+                    patience_count += 1
+                    if patience_count >= patience:
+                        print(f"Parada antecipada na época {epoch + 1}")
+                        break
+        
+        #Funções para criação dos gráficos
         self.gráfico_MSE(self.epocas, self.valores_MSE_train, self.epocas, self.valores_MSE_val)
         self.gráfico_acc(self.epocas, self.accuracies_train, self.epocas, self.accuracies_val)
         
         return
 
+    # Método de previsão da rede neural
     def predict(self, X):
             
         hidden_input = np.dot(X, self.weights_input_hidden)
@@ -134,10 +124,11 @@ class MLP:
 
         return output
 
-
+    # Método que converte a previsão numérica em uma letra do alfabeto
     def prever_letra(self, item):
         return chr(ord('a') + np.argmax(mlp.predict(item)))
 
+    # Método para salvar os pesos em um arquivo
     def save_weights(self, filename):
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
@@ -146,6 +137,7 @@ class MLP:
             writer.writerow(['Pesos da camada oculta para saida'])
             writer.writerows(self.weights_hidden_output)
 
+    # Método para carregar os pesos de um arquivo
     def load_weights(self):
         if os.path.exists(self.weights_filename):
             with open(self.weights_filename, newline='') as csvfile:
@@ -167,7 +159,6 @@ class MLP:
             self.weights_input_hidden = np.array(weights_input_hidden)
             self.weights_hidden_output = np.array(weights_hidden_output)
             print("Pesos carregados", self.weights_filename)
-
 
     
     def forward_pass(self, X_train):
@@ -205,6 +196,7 @@ class MLP:
             self.bias_hidden += np.sum(hidden_delta, axis=0) * learning_rate
 
 
+    # Método para dividir os dados de folds de tamanhos iguais
     def split_data(self, X, y, num_folds):
         num_alfabetos = len(X) // 26     # Obtem a quantidade total de alfabetos
         a = num_alfabetos // num_folds   # Divide os alfabetos em  k-folds de partes iguais
@@ -223,13 +215,14 @@ class MLP:
             y_folds.append(y_shuffled[start:end])
         return X_folds, y_folds
 
-
+    # Método que calcula a matriz de confusão
     def calculate_confusion_matrix(self, y_true, y_pred, num_classes):
         confusion_matrix = np.zeros((num_classes, num_classes), dtype=int)
         for true_label, pred_label in zip(y_true, y_pred):
             confusion_matrix[true_label, pred_label] += 1
         return confusion_matrix
 
+    # Método para exibir a matriz
     def plot_confusion_matrix(self, confusion_matrix, classes):
         num_classes = len(classes)
         plt.figure(figsize=(8, 6))
@@ -246,7 +239,21 @@ class MLP:
             for j in range(num_classes):
                 plt.text(j, i, confusion_matrix[i, j], ha='center', va='center', color='white' if confusion_matrix[i, j] > (confusion_matrix.max() / 2) else 'black')
 
+        # Obter a data atual
+        current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+        # Nome do arquivo com a data atual
+        filename = f'grafico_matriz_{current_date}.png'
+        dir = 'gráficos/matriz'
+
+        filepath = os.path.join(dir, filename)
+
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        # Salvar o gráfico
+        plt.savefig(filepath)
         plt.show()
+
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
         folds_X, folds_y = self.split_data(X, y, num_folds)
@@ -266,12 +273,14 @@ class MLP:
             
             print(f"Fim do Fold {i + 1}")
 
+        # Verifica qual mlp possui maior acurácia nos dados de validação
         max = 0 
         for m in range(len(mlps)):
             if np.max(mlps[m].accuracies_val) > max:
                 max = np.max(mlps[m].accuracies_val)
                 z = m
 
+        # Incorpora os melhores pesos a partir da mlp com maior acurácia
         self.weights_input_hidden = mlps[z].weights_input_hidden
         self.bias_hidden = mlps[z].bias_hidden
         self.weights_hidden_output = mlps[z].weights_hidden_output
@@ -281,7 +290,7 @@ class MLP:
         
         return
     
-    # Função para criar gráfico de MSE em função das épocas
+    # Método para criar gráfico de MSE em função das épocas
     def gráfico_MSE(self, x_train, y_train, x_val, y_val):
         plt.plot(x_train, y_train, color='purple', label='Treino')
         plt.plot(x_val, y_val, color='orange', label='Validação')
@@ -292,17 +301,21 @@ class MLP:
 
         # Obter a data atual
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+        
+        dir = 'gráficos/MSE'
 
         # Nome do arquivo com a data atual
         filename = f'grafico_MSE_{self.cont_fold}_{current_date}.png'
+        filepath = os.path.join(dir, filename)
         
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+
         # Salvar o gráfico
-        plt.savefig(filename)
+        plt.savefig(filepath)
         plt.show()
 
-
-
-    # Função para criar gráfico de acurácia em função dos 'fold'
+    # Método para criar gráfico de acurácia em função dos 'fold'
     def gráfico_acc(self, x_train , y_train, x_val, y_val):
         plt.plot(x_train, y_train, color='purple', label='Treino')
         plt.plot(x_val, y_val, color='orange', label='Validação')
@@ -315,18 +328,24 @@ class MLP:
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
         # Nome do arquivo com a data atual
+        dir = 'gráficos/acurácia'
         filename = f'grafico_ACC_{self.cont_fold}_{current_date}.png'
 
+        filepath = os.path.join(dir, filename)
+
+        if not os.path.exists(dir):
+            os.makedirs(dir)
         # Salvar o gráfico
-        plt.savefig(filename)
+        plt.savefig(filepath)
         plt.show()
 
 
+# Classe com funções para auxiliar na leitura dos dados de entrada
 class Util_Functions:
     def __init__(self):
         pass
 
-    # Função para transformar os rótulos de letras em códigos binários
+    # Método para transformar os rótulos de letras em códigos binários
     # Procedimento de cálculo da resposta da rede em termos de reconhecimento do caractere
     def one_hot_encode(self, labels):
         unique_labels = np.unique(labels)
@@ -367,7 +386,7 @@ class Util_Functions:
         os.chdir(atual)
         return [rotulo.strip() for rotulo in rotulos]
 
-
+    # Transforma uma letra em um índice de intervalo [0:25]
     def letra_para_indice(self, letra):
         if 'A' <= letra <= 'Z':
             return ord(letra) - ord('A')
@@ -376,7 +395,7 @@ class Util_Functions:
         else:
             raise ValueError("Caractere fornecido não é uma letra do alfabeto.")
 
-
+    # Transforma um vetor de letras em um vetor de índices de intervalo [0:25]
     def letras_para_indices(self, vetor_letras):
         indices = []
         for letra in vetor_letras:
@@ -387,21 +406,18 @@ class Util_Functions:
                 raise ValueError(f"Caractere '{letra}' não é uma letra do alfabeto.")
         return indices
 
-    def transformar_rotulos(self, labels):
-        return [self.letras_para_indices(label) for label in labels]
-
-
 class Programa:
 
-  def __init__(self):
+  def __init__(self): # Valores definidos apenas para inicialização do programa, após isso, os valores são alterados
       self.num_camadas_escondidas = 30
-      self.num_epocas = 1000
-      self.tx_aprendizado = 0.005
+      self.num_epocas = 3000
+      self.tx_aprendizado = 0.01
       self.parada_antecipada = False
       self.validacao_cruzada = False
       self.num_vezes = 0
       self.pat = 0
       self.mlp = None
+      self.avaliação = 0
       
   def carregar_hyperparametros(self):
     # Entrada do usuário para obter número de camadas escondidas, épocas, taxa de treinamento, parada antecipada e validação cruzada
@@ -415,31 +431,40 @@ class Programa:
     else:
         self.parada_antecipada = False
 
+    # Obter valor de 'Patience' do usuário para a parada antecipada
     if self.parada_antecipada: 
         self.pat = int(input("Patience? "))
     else:
         self.pat=20
 
-    estratégia = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n"))
-    if estratégia == 1:
-        self.validacao_cruzada = True
-        self.num_vezes = int(input("Num Folds: "))
-    if estratégia == 0:
-        self.num_vezes = 5
-        self.validacao_cruzada = False
-        os.getcwd()
+    # Seleção da estratégia de avaliação do classificador
+    self.avaliação = int(input("Escolha a estratégia para o classificador:\n[0] Hold-out\n[1] Validação cruzada\n[2] Hold-out e Validação cruzada\n"))
     
   def carregar_mlp(self):
-    # Carregar dados de treinamento
-    #X_train, y_train = load_data('X.txt', 'Y_letra.txt')
-
-    #os.getcwd()
-
     util = Util_Functions()
 
-    X_train, y_train = util.load_data('X_CV.txt', 'Y_CV.txt')
-    X_val, y_val = util.load_data('X_CV.txt', 'Y_CV.txt')
-    X_test, y_test = util.load_data('X_verificação_final.txt', 'Y_verificação_final.txt')
+    # Carrega os dados e separa-os em dados de treinamento e dados de validação de acordo com a avaliação escolhida pelo usuário
+    if self.avaliação == 2: # Cross Validation e Hold-out
+        self.validacao_cruzada = True
+        self.num_vezes = int(input("Num Folds: ")) # Obtem quantidade de folds
+        # Dados separados em 70% para treinamento e 30% para validação:
+        X_train, y_train = util.load_data('X_treinamento.txt', 'Y_treinamento.txt')
+        X_val, y_val = util.load_data('X_validação.txt', 'Y_validação.txt')     
+
+    elif self.avaliação == 1: # Cross Validation
+        self.validacao_cruzada = True
+        self.num_vezes = int(input("Num Folds: ")) # Obtem quantidade de folds
+        X_train, y_train = util.load_data('X_CV.txt', 'Y_CV.txt') # Conjunto de dados contendo todos os alfabetos menos os 5 últimos
+        X_val, y_val = util.load_data('X_CV.txt', 'Y_CV.txt')
+
+    elif self.avaliação == 0: # Hold-out
+        self.num_vezes = 5
+        self.validacao_cruzada = False
+        # Dados separados em 70% para treinamento e 30% para validação:
+        X_train, y_train = util.load_data('X_treinamento.txt', 'Y_treinamento.txt')
+        X_val, y_val = util.load_data('X_validação.txt', 'Y_validação.txt') 
+
+    X_test, y_test = util.load_data('X_verificação_final.txt', 'Y_verificação_final.txt') # Conjunto de dados de teste final da mlp contendo os últimos 5 alfabetos dos dados totais
 
     # Verificar se o número de amostras de entrada é igual ao número de rótulos
     if len(X_train) != len(y_train):
@@ -479,13 +504,9 @@ class Programa:
         y_pred.append(letra_prevista_index)
         i = i + 1
 
-    #print(len(X_train))
-    #print(len(y_true))
-    #print(self.num_camadas_escondidas)
-    #print(self.num_epocas)
-
-    print(len(X_train))
-    print(len(y_true))
+    print(len(X_train)) # Quantidade de letras treinadas
+    print(len(y_true))  # Quantidade de letras no conjunto de teste final da mlp
+    # Exibição dos dados de entrada do usuário (Número de neurônios na camada escondida, Número de épocas, taxa de treinamento)
     print("Número de neurônios na camada escondida: " + str(self.num_camadas_escondidas) + "\nNúmero de épocas: " + str(self.num_epocas) + "\nTaxa de treinamento: " + str(self.tx_aprendizado))
 
     # Cálculo da matriz e criação da matriz de confusão
