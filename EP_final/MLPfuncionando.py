@@ -234,13 +234,13 @@ class MLP:
         num_classes = len(classes)
         plt.figure(figsize=(8, 6))
         plt.imshow(confusion_matrix, interpolation='nearest', cmap=plt.cm.Blues)
-        plt.title('Confusion Matrix')
+        plt.title('Matriz de Confusão')
         plt.colorbar()
         tick_marks = np.arange(num_classes)
         plt.xticks(tick_marks, classes)
         plt.yticks(tick_marks, classes)
-        plt.xlabel('Predicted Label')
-        plt.ylabel('True Label')
+        plt.xlabel('Valores preditos')
+        plt.ylabel('Valores reais')
 
         for i in range(num_classes):
             for j in range(num_classes):
