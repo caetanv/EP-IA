@@ -223,7 +223,7 @@ class MLP:
         return confusion_matrix
 
     # printar acurácia e precisão, recall e f1score
-    def print_accuracy_and_precision(self, confusion_matrix):
+    def print_accuracy_precision_recall_f1(self, confusion_matrix):
         accuracy = np.trace(confusion_matrix) / np.sum(confusion_matrix)
         precision = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=0)
         recall = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=1)
