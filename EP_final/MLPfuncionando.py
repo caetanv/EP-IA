@@ -222,6 +222,13 @@ class MLP:
             confusion_matrix[true_label, pred_label] += 1
         return confusion_matrix
 
+    # printar acurácia e precisão
+    def print_accuracy_and_precision(self, confusion_matrix):
+        accuracy = np.trace(confusion_matrix) / np.sum(confusion_matrix)
+        precision = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=0)
+        print(f"Accuracy: {accuracy:.2f}")
+        print(f"Precision: {precision}")
+
     # Método para exibir a matriz
     def plot_confusion_matrix(self, confusion_matrix, classes):
         num_classes = len(classes)
@@ -489,8 +496,8 @@ class Programa:
 
     i = 0
     y_pred = []
-    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    num_classes = len(classes)
+    num_classes = 26
+    classes = [chr(i + ord('A')) for i in range(num_classes)]
     y_true = util.letras_para_indices(y_test)
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
@@ -511,6 +518,7 @@ class Programa:
 
     # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = self.mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
+    self.mlp.print_accuracy_and_precision(confusion_matrix)
     self.mlp.plot_confusion_matrix(confusion_matrix, classes)
 
   def iniciar_programa(self):
