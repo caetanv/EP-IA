@@ -222,12 +222,21 @@ class MLP:
             confusion_matrix[true_label, pred_label] += 1
         return confusion_matrix
 
-    # printar acurácia e precisão
+    # printar acurácia e precisão, recall e f1score
     def print_accuracy_and_precision(self, confusion_matrix):
         accuracy = np.trace(confusion_matrix) / np.sum(confusion_matrix)
         precision = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=0)
+        recall = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=1)
+        f1_score = 2 * (precision * recall) / (precision + recall)
+        
         print(f"Accuracy: {accuracy:.2f}")
-        print(f"Precision: {precision}")
+        
+        for idx in range(len(precision)):
+            print(f"Class {idx}:")
+            print(f"  Precision: {precision[idx]:.2f}")
+            print(f"  Recall: {recall[idx]:.2f}")
+            print(f"  F1 Score: {f1_score[idx]:.2f}")
+
 
     # Método para exibir a matriz
     def plot_confusion_matrix(self, confusion_matrix, classes):
@@ -260,6 +269,29 @@ class MLP:
         # Salvar o gráfico
         plt.savefig(filepath)
         plt.show()
+
+    def calculate_metrics(self,confusion_matrix):
+        FP = confusion_matrix.sum(axis=0) - np.diag(confusion_matrix)
+        FN = confusion_matrix.sum(axis=1) - np.diag(confusion_matrix)
+        TP = np.diag(confusion_matrix)
+        TN = confusion_matrix.sum() - (FP + FN + TP)
+        
+        FP = FP.sum()
+        FN = FN.sum()
+        TP = TP.sum()
+        TN = TN.sum()
+        
+        # Calculate percentages
+        total = FP + FN + TP + TN
+        FP_rate = FP / total
+        FN_rate = FN / total
+        TP_rate = TP / total
+        TN_rate = TN / total
+        
+        print(f"True Positives: {TP} ({TP_rate:.2%})")
+        print(f"True Negatives: {TN} ({TN_rate:.2%})")
+        print(f"False Positives: {FP} ({FP_rate:.2%})")
+        print(f"False Negatives: {FN} ({FN_rate:.2%})")
 
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
@@ -345,6 +377,7 @@ class MLP:
         # Salvar o gráfico
         plt.savefig(filepath)
         plt.show()
+
 
 
 # Classe com funções para auxiliar na leitura dos dados de entrada
@@ -518,7 +551,8 @@ class Programa:
 
     # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = self.mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
-    self.mlp.print_accuracy_and_precision(confusion_matrix)
+    self.mlp.print_accuracy_precision_recall_f1(confusion_matrix)
+    self.mlp.calculate_metrics(confusion_matrix)
     self.mlp.plot_confusion_matrix(confusion_matrix, classes)
 
   def iniciar_programa(self):
