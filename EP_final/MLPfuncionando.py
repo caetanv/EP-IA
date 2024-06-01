@@ -9,6 +9,7 @@ class MLP:
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
+        self.weights_filename = weights_filename
 
         # Inicialização dos pesos e biases
         # Multiplicando pesos por 0.01 para evitar a saturação dos vetores gradientes
@@ -16,8 +17,6 @@ class MLP:
         self.bias_hidden = np.zeros(hidden_size)
         self.weights_hidden_output = np.random.randn(hidden_size, output_size) * 0.01
         self.bias_output = np.zeros(output_size)
-
-        self.weights_filename = weights_filename
 
         # Listas que auxiliam na construção dos gráficos
         self.valores_MSE_train = []
