@@ -9,6 +9,7 @@ class MLP:
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
+        self.weights_filename = weights_filename
 
         # Inicialização dos pesos e biases
         # Multiplicando pesos por 0.01 para evitar a saturação dos vetores gradientes
@@ -16,8 +17,6 @@ class MLP:
         self.bias_hidden = np.zeros(hidden_size)
         self.weights_hidden_output = np.random.randn(hidden_size, output_size) * 0.01
         self.bias_output = np.zeros(output_size)
-
-        self.weights_filename = weights_filename
 
         # Listas que auxiliam na construção dos gráficos
         self.valores_MSE_train = []
@@ -234,6 +233,22 @@ class MLP:
             confusion_matrix[true_label, pred_label] += 1
         return confusion_matrix
 
+    # printar acurácia e precisão, recall e f1score
+    def print_accuracy_precision_recall_f1(self, confusion_matrix):
+        accuracy = np.trace(confusion_matrix) / np.sum(confusion_matrix)
+        precision = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=0)
+        recall = np.diag(confusion_matrix) / np.sum(confusion_matrix, axis=1)
+        f1_score = 2 * (precision * recall) / (precision + recall)
+        
+        print(f"Accuracy: {accuracy:.2f}")
+        
+        for idx in range(len(precision)):
+            print(f"Class {idx}:")
+            print(f"  Precision: {precision[idx]:.2f}")
+            print(f"  Recall: {recall[idx]:.2f}")
+            print(f"  F1 Score: {f1_score[idx]:.2f}")
+
+
     # Método para exibir a matriz
     def plot_confusion_matrix(self, confusion_matrix, classes):
         num_classes = len(classes)
@@ -265,6 +280,29 @@ class MLP:
         # Salvar o gráfico
         plt.savefig(filepath)
         plt.show()
+
+    def calculate_metrics(self,confusion_matrix):
+        FP = confusion_matrix.sum(axis=0) - np.diag(confusion_matrix)
+        FN = confusion_matrix.sum(axis=1) - np.diag(confusion_matrix)
+        TP = np.diag(confusion_matrix)
+        TN = confusion_matrix.sum() - (FP + FN + TP)
+        
+        FP = FP.sum()
+        FN = FN.sum()
+        TP = TP.sum()
+        TN = TN.sum()
+        
+        # Calculate percentages
+        total = FP + FN + TP + TN
+        FP_rate = FP / total
+        FN_rate = FN / total
+        TP_rate = TP / total
+        TN_rate = TN / total
+        
+        print(f"True Positives: {TP} ({TP_rate:.2%})")
+        print(f"True Negatives: {TN} ({TN_rate:.2%})")
+        print(f"False Positives: {FP} ({FP_rate:.2%})")
+        print(f"False Negatives: {FN} ({FN_rate:.2%})")
 
 
     def cross_validation(self, X, y, num_folds, input_size, hidden_size, output_size, epochs, learning_rate):
@@ -350,6 +388,7 @@ class MLP:
         # Salvar o gráfico
         plt.savefig(filepath)
         plt.show()
+
 
 
 # Classe com funções para auxiliar na leitura dos dados de entrada
@@ -501,8 +540,8 @@ class Programa:
 
     i = 0
     y_pred = []
-    classes = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    num_classes = len(classes)
+    num_classes = 26
+    classes = [chr(i + ord('A')) for i in range(num_classes)]
     y_true = util.letras_para_indices(y_test)
 
     # Representação de cada letra do alfabeto com o vetor binário e demonstração do resultado em comparação à amostra real
@@ -523,6 +562,8 @@ class Programa:
 
     # Cálculo da matriz e criação da matriz de confusão
     confusion_matrix = self.mlp.calculate_confusion_matrix(y_true,y_pred,num_classes)
+    self.mlp.print_accuracy_precision_recall_f1(confusion_matrix)
+    self.mlp.calculate_metrics(confusion_matrix)
     self.mlp.plot_confusion_matrix(confusion_matrix, classes)
 
   def iniciar_programa(self):
