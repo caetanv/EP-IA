@@ -1,3 +1,17 @@
+'''
+ACH2016 - Inteligência Artificial                
+   EACH-USP - Primeiro Semestre de 2024                           
+   Turma 04 - Prof. Sarajane Marques Peres                  
+                                                                 
+  Primeiro Exercicio-Programa                                   
+                                                                 
+  Guilherme Fernandes Aliaga - 13672432
+  Marcos Vilela Rezende Júnior - 13729806
+  Vinicius Kazuo Inagaki - 13747967
+  Vitor Caetano da Silva - 9276999
+  
+'''
+
 import numpy as np
 import csv
 import os
